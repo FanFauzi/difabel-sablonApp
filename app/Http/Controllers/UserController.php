@@ -74,7 +74,8 @@ class UserController extends Controller
             'product_id' => 'required|exists:products,id',
             'quantity' => 'required|integer|min:1',
             'design_description' => 'required|string|max:1000',
-            'design_file' => 'nullable|file|mimes:jpeg,jpg,png,pdf,doc,docx|max:5120', // 5MB max
+            'design_file' => 'required|file|mimes:jpeg,jpg,png,pdf,doc,docx|max:5120',
+            'design_size' => 'required|in:small,medium,large', // Tambahan: validasi ukuran desain
             'notes' => 'nullable|string|max:500',
         ]);
 
@@ -91,8 +92,22 @@ class UserController extends Controller
             $designFilePath = $request->file('design_file')->store('designs', 'public');
         }
 
+        // Calculate design cost based on selected size
+        $designCost = 0;
+        switch ($request->design_size) {
+            case 'small':
+                $designCost = $product->small_design_cost;
+                break;
+            case 'medium':
+                $designCost = $product->medium_design_cost;
+                break;
+            case 'large':
+                $designCost = $product->large_design_cost;
+                break;
+        }
+
         // Calculate total price
-        $totalPrice = $product->price * $request->quantity;
+        $totalPrice = ($product->price * $request->quantity) + $designCost;
 
         // Create order
         Order::create([
@@ -101,6 +116,8 @@ class UserController extends Controller
             'quantity' => $request->quantity,
             'design_description' => $request->design_description,
             'design_file' => $designFilePath,
+            'design_size' => $request->design_size, // Simpan ukuran desain
+            'design_cost' => $designCost, // Simpan biaya desain
             'notes' => $request->notes,
             'total_price' => $totalPrice,
             'status' => 'pending',

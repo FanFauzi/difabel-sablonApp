@@ -16,7 +16,6 @@
 </div>
 
 <div class="row">
-    <!-- Order Information -->
     <div class="col-lg-8 mb-4">
         <div class="card">
             <div class="card-header">
@@ -25,7 +24,6 @@
                 </h5>
             </div>
             <div class="card-body">
-                <!-- Product Information -->
                 <div class="row mb-4">
                     <div class="col-md-3 text-center">
                         @if($order->product && $order->product->image)
@@ -59,7 +57,6 @@
                     </div>
                 </div>
 
-                <!-- Design Information -->
                 @if($order->design_description || $order->design_file)
                 <div class="mb-4">
                     <h6 class="text-primary mb-3">
@@ -67,6 +64,12 @@
                     </h6>
                     <div class="card bg-light">
                         <div class="card-body">
+                            @if($order->design_size)
+                                <p class="mb-2"><strong>Ukuran Desain:</strong> {{ ucfirst($order->design_size) }}</p>
+                            @endif
+                            @if($order->design_cost)
+                                <p class="mb-2"><strong>Biaya Desain:</strong> Rp {{ number_format($order->design_cost, 0, ',', '.') }}</p>
+                            @endif
                             @if($order->design_description)
                                 <p class="mb-2"><strong>Deskripsi Desain:</strong></p>
                                 <p class="mb-3">{{ $order->design_description }}</p>
@@ -85,7 +88,6 @@
                 </div>
                 @endif
 
-                <!-- Notes -->
                 @if($order->notes)
                 <div class="mb-4">
                     <h6 class="text-primary mb-3">
@@ -102,7 +104,6 @@
         </div>
     </div>
 
-    <!-- Status Timeline -->
     <div class="col-lg-4 mb-4">
         <div class="card">
             <div class="card-header">
@@ -111,7 +112,6 @@
                 </h5>
             </div>
             <div class="card-body">
-                <!-- Current Status -->
                 <div class="text-center mb-4">
                     @php
                         $statusColors = [
@@ -134,9 +134,7 @@
                     </div>
                 </div>
 
-                <!-- Status Timeline -->
                 <div class="timeline">
-                    <!-- Pending Status -->
                     <div class="timeline-item">
                         <div class="timeline-marker {{ $order->status === 'pending' || $order->status === 'proses' || $order->status === 'selesai' ? 'bg-warning' : 'bg-secondary' }}"></div>
                         <div class="timeline-content">
@@ -152,7 +150,6 @@
                         </div>
                     </div>
 
-                    <!-- Processing Status -->
                     <div class="timeline-item">
                         <div class="timeline-marker {{ $order->status === 'proses' || $order->status === 'selesai' ? 'bg-info' : 'bg-secondary' }}"></div>
                         <div class="timeline-content">
@@ -173,7 +170,6 @@
                         </div>
                     </div>
 
-                    <!-- Completed Status -->
                     <div class="timeline-item">
                         <div class="timeline-marker {{ $order->status === 'selesai' ? 'bg-success' : 'bg-secondary' }}"></div>
                         <div class="timeline-content">
@@ -190,7 +186,6 @@
                     </div>
                 </div>
 
-                <!-- Action Buttons -->
                 <div class="mt-4">
                     <a href="{{ route('user.orders') }}" class="btn btn-outline-secondary w-100 mb-2">
                         <i class="fas fa-arrow-left me-2"></i>Kembali ke Riwayat

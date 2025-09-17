@@ -9,7 +9,7 @@
         <div>
             <h2 class="mb-1">Manajemen User</h2>
         </div>
-        <a href="{{ route('users.create') }}" class="btn btn-primary btn-lg">
+        <a href="{{ route('admin.users.create') }}" class="btn btn-primary btn-lg">
             <i class="fas fa-plus me-2"></i>Tambah User Baru
         </a>
     </div>
@@ -161,14 +161,14 @@
                                 </td>
                                 <td>
                                     <div class="btn-group" role="group">
-                                        <a href="{{ route('users.edit', $user->id) }}" class="btn btn-sm btn-outline-primary" title="Edit User">
+                                        <a href="{{ route('admin.users.edit', $user->id) }}" class="btn btn-sm btn-outline-primary" title="Edit User">
                                             <i class="fas fa-edit"></i>
                                         </a>
                                         @if($user->id !== auth()->id())
                                             <button type="button" class="btn btn-sm btn-outline-warning" title="Nonaktifkan User" onclick="deactivateUser({{ $user->id }})">
                                                 <i class="fas fa-ban"></i>
                                             </button>
-                                            <a href="{{ route('users.delete', $user->id) }}" class="btn btn-sm btn-outline-danger" title="Hapus User" onclick="return confirm('Apakah Anda yakin ingin menghapus user ini?')">
+                                            <a href="{{ route('admin.users.delete', $user->id) }}" class="btn btn-sm btn-outline-danger" title="Hapus User" onclick="return confirm('Apakah Anda yakin ingin menghapus user ini?')">
                                                 <i class="fas fa-trash"></i>
                                             </a>
                                         @else

@@ -16,7 +16,6 @@
 </div>
 
 <div class="row">
-    <!-- Product Information -->
     <div class="col-lg-4 mb-4">
         <div class="card h-100">
             <div class="card-header">
@@ -56,7 +55,6 @@
         </div>
     </div>
 
-    <!-- Order Form -->
     <div class="col-lg-8">
         <div class="card">
             <div class="card-header">
@@ -66,10 +64,8 @@
                 <form action="{{ route('user.orders.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
 
-                    <!-- Hidden Product ID -->
                     <input type="hidden" name="product_id" value="{{ $product->id }}">
 
-                    <!-- Step 1: Pilih Produk Sablon -->
                     <div class="mb-4">
                         <h6 class="text-primary mb-3">
                             <i class="fas fa-check-circle me-2"></i>1. Produk Dipilih
@@ -79,13 +75,12 @@
                         </div>
                     </div>
 
-                    <!-- Step 2: Masukkan Jumlah -->
                     <div class="mb-4">
                         <h6 class="text-primary mb-3">
-                            <i class="fas fa-list-ol me-2"></i>2. Masukkan Jumlah Pesanan
+                            <i class="fas fa-list-ol me-2"></i>2. Jumlah & Ukuran Desain
                         </h6>
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-6 mb-3">
                                 <label for="quantity" class="form-label">Jumlah Pesanan <span class="text-danger">*</span></label>
                                 <div class="input-group">
                                     <button type="button" class="btn btn-outline-secondary" onclick="decrementQuantity()">-</button>
@@ -95,23 +90,25 @@
                                 </div>
                                 <div class="form-text">Maksimal {{ $product->stock }} unit</div>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Total Harga</label>
-                                <div class="h4 text-success" id="totalPrice">
-                                    Rp {{ number_format($product->price, 0, ',', '.') }}
-                                </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="design_size" class="form-label">Ukuran Desain <span class="text-danger">*</span></label>
+                                <select class="form-select" id="design_size" name="design_size" required>
+                                    <option value="small" data-cost="{{ $product->small_design_cost ?? 0 }}">Small (Rp {{ number_format($product->small_design_cost ?? 0, 0, ',', '.') }})</option>
+                                    <option value="medium" data-cost="{{ $product->medium_design_cost ?? 0 }}">Medium (Rp {{ number_format($product->medium_design_cost ?? 0, 0, ',', '.') }})</option>
+                                    <option value="large" data-cost="{{ $product->large_design_cost ?? 0 }}">Large (Rp {{ number_format($product->large_design_cost ?? 0, 0, ',', '.') }})</option>
+                                </select>
+                                <div class="form-text">Pilih ukuran desain sablon</div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Step 3: Upload Desain (Optional) -->
                     <div class="mb-4">
                         <h6 class="text-primary mb-3">
-                            <i class="fas fa-upload me-2"></i>3. Upload Desain Sablon (Opsional)
+                            <i class="fas fa-upload me-2"></i>3. Upload Desain Sablon
                         </h6>
                         <div class="mb-3">
-                            <label for="design_file" class="form-label">File Desain</label>
-                            <input type="file" class="form-control" id="design_file" name="design_file"
+                            <label for="design_file" class="form-label">File Desain <span class="text-danger">*</span></label>
+                            <input type="file" class="form-control" id="design_file" name="design_file" required
                                    accept="image/*,.pdf,.doc,.docx">
                             <div class="form-text">
                                 Format yang didukung: JPG, PNG, PDF, DOC, DOCX. Maksimal 5MB.
@@ -120,14 +117,13 @@
                         <div class="mb-3">
                             <label for="design_description" class="form-label">Deskripsi Desain</label>
                             <textarea class="form-control" id="design_description" name="design_description"
-                                      rows="3" placeholder="Jelaskan detail desain sablon yang Anda inginkan..."></textarea>
+                                      rows="3" placeholder="Jelaskan detail desain sablon yang Anda inginkan..." required></textarea>
                             <div class="form-text">
                                 Berikan detail warna, ukuran, posisi, dan instruksi khusus untuk desain Anda.
                             </div>
                         </div>
                     </div>
 
-                    <!-- Step 4: Catatan Tambahan -->
                     <div class="mb-4">
                         <h6 class="text-primary mb-3">
                             <i class="fas fa-sticky-note me-2"></i>4. Catatan Tambahan (Opsional)
@@ -139,7 +135,6 @@
                         </div>
                     </div>
 
-                    <!-- Order Summary -->
                     <div class="card bg-light mb-4">
                         <div class="card-body">
                             <h6 class="card-title">Ringkasan Pesanan</h6>
@@ -148,17 +143,17 @@
                                     <p class="mb-1"><strong>Produk:</strong> {{ $product->name }}</p>
                                     <p class="mb-1"><strong>Harga per Unit:</strong> Rp {{ number_format($product->price, 0, ',', '.') }}</p>
                                     <p class="mb-1"><strong>Jumlah:</strong> <span id="summaryQuantity">1</span> unit</p>
+                                    <p class="mb-1"><strong>Biaya Desain:</strong> <span id="summaryDesignCost">Rp {{ number_format($product->small_design_cost ?? 0, 0, ',', '.') }}</span></p>
                                 </div>
                                 <div class="col-sm-6">
-                                    <p class="mb-1"><strong>Subtotal:</strong> <span id="summarySubtotal">Rp {{ number_format($product->price, 0, ',', '.') }}</span></p>
+                                    <p class="mb-1"><strong>Subtotal:</strong> <span id="summarySubtotal">Rp {{ number_format($product->price + ($product->small_design_cost ?? 0), 0, ',', '.') }}</span></p>
                                     <p class="mb-1"><strong>Biaya Admin:</strong> Rp 0</p>
-                                    <p class="mb-0"><strong>Total:</strong> <span id="summaryTotal" class="text-success fw-bold">Rp {{ number_format($product->price, 0, ',', '.') }}</span></p>
+                                    <p class="mb-0"><strong>Total:</strong> <span id="summaryTotal" class="text-success fw-bold">Rp {{ number_format($product->price + ($product->small_design_cost ?? 0), 0, ',', '.') }}</span></p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Terms and Conditions -->
                     <div class="mb-4">
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="terms" required>
@@ -168,7 +163,6 @@
                         </div>
                     </div>
 
-                    <!-- Action Buttons -->
                     <div class="d-flex justify-content-between">
                         <a href="{{ route('user.products') }}" class="btn btn-outline-secondary">
                             <i class="fas fa-arrow-left me-2"></i>Kembali ke Produk
@@ -183,7 +177,6 @@
     </div>
 </div>
 
-<!-- Terms Modal -->
 <div class="modal fade" id="termsModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -236,19 +229,30 @@ function decrementQuantity() {
 
 function updateTotal() {
     const quantity = parseInt(document.getElementById('quantity').value);
-    const price = {{ $product->price }};
-    const total = quantity * price;
+    const productPrice = {{ $product->price }};
+
+    const designSizeSelect = document.getElementById('design_size');
+    const selectedOption = designSizeSelect.options[designSizeSelect.selectedIndex];
+    const designCost = parseInt(selectedOption.getAttribute('data-cost'));
+
+    const subtotal = (quantity * productPrice) + designCost;
+    const total = subtotal; // Assuming no other costs like admin fee
 
     // Update total price display
     document.getElementById('totalPrice').innerHTML = 'Rp ' + total.toLocaleString('id-ID');
 
     // Update summary
     document.getElementById('summaryQuantity').innerHTML = quantity;
-    document.getElementById('summarySubtotal').innerHTML = 'Rp ' + total.toLocaleString('id-ID');
+    document.getElementById('summaryDesignCost').innerHTML = 'Rp ' + designCost.toLocaleString('id-ID');
+    document.getElementById('summarySubtotal').innerHTML = 'Rp ' + subtotal.toLocaleString('id-ID');
     document.getElementById('summaryTotal').innerHTML = 'Rp ' + total.toLocaleString('id-ID');
 }
 
 // Update total when quantity changes
 document.getElementById('quantity').addEventListener('input', updateTotal);
+document.getElementById('design_size').addEventListener('change', updateTotal);
+
+// Initial call to set correct initial values
+document.addEventListener('DOMContentLoaded', updateTotal);
 </script>
 @endsection

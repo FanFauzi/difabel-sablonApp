@@ -3,15 +3,48 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
+// class Product extends Model
+// {
+//     protected $fillable = [
+//         'name',
+//         'price',
+//         'description',
+//         'stock',
+//         'image',
+//         'category',
+//     ];
+// }
 
 class Product extends Model
 {
+    use HasFactory;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'name',
-        'price',
+        'slug',
         'description',
-        'stock',
-        'image',
         'category',
+        'price',
+        'small_design_cost',  // <-- Tambahkan baris ini
+        'medium_design_cost', // <-- Tambahkan baris ini
+        'large_design_cost',  // <-- Tambahkan baris ini
+        'image',
     ];
+
+    /**
+     * Get the route key for the model.
+     *
+     * @return string
+     */
+    public function getRouteKeyName()
+    {
+        return 'slug';
+    }
 }

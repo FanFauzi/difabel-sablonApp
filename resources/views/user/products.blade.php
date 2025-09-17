@@ -5,6 +5,12 @@
 @section('content')
 <div class="row mb-4">
     <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ route('user.dashboard') }}">Dashboard</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Produk</li>
+            </ol>
+        </nav>
     </div>
 </div>
 
@@ -49,9 +55,10 @@
                         </div>
 
                         <div class="d-grid">
+                            {{-- Mengarahkan ke halaman desain dan pemesanan yang baru --}}
                             <a href="{{ route('user.orders.create', $product) }}"
                                class="btn btn-primary">
-                                <i class="fas fa-plus me-2"></i>Pesan Sekarang
+                                <i class="fas fa-magic me-2"></i>Desain & Pesan
                             </a>
                         </div>
                     </div>
@@ -73,7 +80,6 @@
     </div>
 @endif
 
-<!-- Information Section -->
 <div class="row mt-4">
     <div class="col-12">
         <div class="card bg-light">

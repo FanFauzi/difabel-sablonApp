@@ -2,27 +2,33 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
 {
+    use HasFactory;
+    
     protected $table = 'orders';
     protected $fillable = [
         'user_id',
         'product_id',
         'quantity',
+        'size',
+        'color',
         'design_description',
-        'design_file',
         'status',
         'total_price',
         'notes',
+        'design_file_depan', // <-- Ganti dari design_url_depan
+        'design_file_belakang', // <-- Ganti dari design_url_belakang
+        'design_file_samping', // <-- Ganti dari design_url_samping
     ];
 
     protected $casts = [
         'total_price' => 'decimal:2',
     ];
 
-    // Relationships
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -37,8 +43,7 @@ class Order extends Model
     {
         return $this->hasMany(OrderItem::class);
     }
-
-    // Status options
+    
     public static function getStatusOptions()
     {
         return [
@@ -48,8 +53,7 @@ class Order extends Model
             'ditolak' => 'Ditolak',
         ];
     }
-
-    // Get status color for UI
+    
     public function getStatusColor()
     {
         return match($this->status) {
@@ -60,8 +64,7 @@ class Order extends Model
             default => 'secondary',
         };
     }
-
-    // Get status badge class
+    
     public function getStatusBadgeClass()
     {
         return match($this->status) {

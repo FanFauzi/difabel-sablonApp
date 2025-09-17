@@ -15,7 +15,7 @@
                     </h5>
                 </div>
                 <div class="card-body p-4">
-                    <form action="{{ route('products.store') }}" method="POST" enctype="multipart/form-data" id="productForm">
+                    <form action="{{ route('admin.products.store') }}" method="POST" enctype="multipart/form-data" id="productForm">
                         @csrf
 
                         <!-- Basic Information Section -->
@@ -141,7 +141,7 @@
 
                         <!-- Action Buttons -->
                         <div class="d-flex justify-content-between align-items-center pt-3 border-top">
-                            <a href="{{ route('products.index') }}" class="btn btn-outline-secondary">
+                            <a href="{{ route('admin.products.index') }}" class="btn btn-outline-secondary">
                                 <i class="fas fa-times me-2"></i>Batal
                             </a>
                             <div>
