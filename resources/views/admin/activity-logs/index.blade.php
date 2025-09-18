@@ -10,7 +10,7 @@
             <h2 class="mb-1">Log Aktivitas</h2>
             <p class="text-muted mb-0">Pantau aktivitas sistem berdasarkan kategori</p>
         </div>
-        <form action="{{ route('activity-logs.clear') }}" method="POST" class="d-inline">
+        <form action="{{ route('admin.activity-logs.clear') }}" method="POST" class="d-inline">
             @csrf
             @method('DELETE')
             <button type="submit" class="btn btn-danger" onclick="return confirm('Apakah Anda yakin ingin menghapus semua log aktivitas?')">

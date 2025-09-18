@@ -314,7 +314,12 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::resource('products', CustomProductController::class);
 
     // Rute baru untuk manajemen produk kustom
-    Route::resource('custom-products', CustomProductController::class);
+    // Route::resource('custom-products', CustomProductController::class);
+
+    Route::get('/products/{id}/delete', function ($id) {
+        $product = \App\Models\CustomProduct::findOrFail($id);
+        return view('admin.products.delete', compact('product'));
+    })->name('products.delete');
 
     // Dashboard
     Route::get('/dashboard', function () {
@@ -381,7 +386,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 
     // Order Management
     Route::get('/orders', function () {
-        $orders = \App\Models\Order::with(['user', 'orderItems.product'])->latest()->get();
+        $orders = \App\Models\Order::orderBy('created_at', 'desc')->paginate(10);
         return view('admin.orders.index', compact('orders'));
     })->name('orders.index');
     Route::get('/orders/{id}', function ($id) {
@@ -427,34 +432,44 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     });
 
     // Financial Reports
+    // Route::get('/reports/financial', [FinancialReportController::class, 'index'])->name('reports.financial');
+    // Route::get('/reports/financial/export/excel', [FinancialReportController::class, 'exportExcel'])->name('reports.financial.export.excel');
+    // Route::get('/reports/financial/export/pdf', [FinancialReportController::class, 'exportPDF'])->name('reports.financial.export.pdf');
+
+    // // Design File Downloads
+    // Route::get('/orders/{order}/download-design', function (\App\Models\Order $order) {
+    //     // Ensure only admins can access
+    //     if (!Auth::check() || Auth::user()->role !== 'admin') {
+    //         abort(403, 'Unauthorized');
+    //     }
+
+    //     if (!$order->design_file) {
+    //         return back()->with('error', 'File desain tidak ditemukan.');
+    //     }
+
+    //     $filePath = storage_path('app/public/' . $order->design_file);
+
+    //     if (!file_exists($filePath)) {
+    //         return back()->with('error', 'File desain tidak tersedia.');
+    //     }
+
+    //     $originalName = basename($order->design_file);
+    //     $extension = pathinfo($filePath, PATHINFO_EXTENSION);
+    //     $filename = 'desain_pesanan_' . $order->id . '_' . $order->user->name . '.' . $extension;
+    //     $filename = str_replace([' ', '/', '\\'], '_', $filename);
+
+    //     return response()->download($filePath, $filename);
+    // })->name('orders.download-design');
+
+    // Financial Reports
     Route::get('/reports/financial', [FinancialReportController::class, 'index'])->name('reports.financial');
     Route::get('/reports/financial/export/excel', [FinancialReportController::class, 'exportExcel'])->name('reports.financial.export.excel');
     Route::get('/reports/financial/export/pdf', [FinancialReportController::class, 'exportPDF'])->name('reports.financial.export.pdf');
 
+
     // Design File Downloads
-    Route::get('/orders/{order}/download-design', function (\App\Models\Order $order) {
-        // Ensure only admins can access
-        if (!Auth::check() || Auth::user()->role !== 'admin') {
-            abort(403, 'Unauthorized');
-        }
+    Route::get('/orders/{order}/download-design', [OrderController::class, 'downloadDesign'])->name('orders.download-design');
 
-        if (!$order->design_file) {
-            return back()->with('error', 'File desain tidak ditemukan.');
-        }
-
-        $filePath = storage_path('app/public/' . $order->design_file);
-
-        if (!file_exists($filePath)) {
-            return back()->with('error', 'File desain tidak tersedia.');
-        }
-
-        $originalName = basename($order->design_file);
-        $extension = pathinfo($filePath, PATHINFO_EXTENSION);
-        $filename = 'desain_pesanan_' . $order->id . '_' . $order->user->name . '.' . $extension;
-        $filename = str_replace([' ', '/', '\\'], '_', $filename);
-
-        return response()->download($filePath, $filename);
-    })->name('orders.download-design');
 });
 
 

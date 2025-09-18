@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage; // <-- Tambahkan ini
+use App\Models\CustomProduct;
 
 class OrderController extends Controller
 {
@@ -29,6 +30,29 @@ class OrderController extends Controller
   public function createDesign(CustomProduct $customProduct)
   {
     return view('user.design-and-order', ['product' => $customProduct]);
+  }
+
+  public function downloadDesign(Order $order)
+  {
+    // Ensure only admins can access
+    if (!Auth::check() || Auth::user()->role !== 'admin') {
+      abort(403, 'Unauthorized');
+    }
+
+    if (!$order->design_file) {
+      return back()->with('error', 'File desain tidak ditemukan.');
+    }
+
+    $filePath = storage_path('app/public/' . $order->design_file);
+
+    if (!file_exists($filePath)) {
+      return back()->with('error', 'File desain tidak tersedia.');
+    }
+
+    $filename = 'desain_pesanan_' . $order->id . '_' . $order->user->name . '.' . pathinfo($filePath, PATHINFO_EXTENSION);
+    $filename = str_replace([' ', '/', '\\'], '_', $filename);
+
+    return response()->download($filePath, $filename);
   }
 
   // Perbarui metode store

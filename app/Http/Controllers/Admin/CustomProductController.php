@@ -7,7 +7,6 @@ use App\Models\CustomProduct;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Symfony\Component\Finder\Iterator\CustomFilterIterator;
 
 class CustomProductController extends Controller
 {
@@ -28,9 +27,9 @@ class CustomProductController extends Controller
         return view('admin.products.create-custom');
     }
 
-    public function show(CustomFilterIterator $product)
+        public function show(CustomProduct $product)
     {
-        return view('admin.products.show', compact('customProducts'));
+        return view('admin.products.show', compact('product'));
     }
 
     /**
