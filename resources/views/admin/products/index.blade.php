@@ -51,8 +51,6 @@
                             <th>Produk</th>
                             <th>Harga</th>
                             <th>Biaya Desain</th>
-                            <th>Stok</th>
-                            <th>Status</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -77,14 +75,6 @@
                                         <div><small>M: Rp {{ number_format($product->medium_design_cost, 0, ',', '.') }}</small></div>
                                         <div><small>L: Rp {{ number_format($product->large_design_cost, 0, ',', '.') }}</small></div>
                                     </div>
-                                </td>
-                                <td><div class="d-flex align-items-center"><span class="me-2">{{ $product->stock }}</span></div></td>
-                                <td>
-                                    @if($product->stock > 0)
-                                        <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Aktif</span>
-                                    @else
-                                        <span class="badge bg-secondary"><i class="fas fa-pause-circle me-1"></i>Tidak Tersedia</span>
-                                    @endif
                                 </td>
                                 <td>
                                     <div class="btn-group" role="group">

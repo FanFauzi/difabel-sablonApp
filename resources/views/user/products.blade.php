@@ -49,9 +49,6 @@
                             <div>
                                 <strong class="text-success">Rp {{ number_format($product->price, 0, ',', '.') }}</strong>
                             </div>
-                            <div>
-                                <small class="text-muted">Stok: {{ $product->stock }}</small>
-                            </div>
                         </div>
 
                         <div class="d-grid">

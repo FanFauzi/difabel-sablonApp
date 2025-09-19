@@ -54,23 +54,6 @@ class OrderController extends Controller
 
     return response()->download($filePath, $filename);
   }
-
-  // Perbarui metode store
-  // public function store(Request $request)
-  // {
-  //   // ... kode validasi lainnya ...
-
-  //   $order = new Order();
-  //   $order->user_id = Auth::id();
-  //   // Cek apakah produknya adalah produk kustom
-  //   if ($request->product_type === 'custom') { // Anda perlu menambahkan input hidden ini di form
-  //     $order->custom_product_id = $request->product_id;
-  //   } else {
-  //     $order->product_id = $request->product_id;
-  //   }
-  //   // ... simpan data lainnya ...
-  // }
-
   /**
    * Simpan pesanan baru.
    */

@@ -37,7 +37,6 @@ class ProductController extends Controller
             'category' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:1000',
-            'stock' => 'required|integer|min:0',
             'small_design_cost' => 'nullable|numeric|min:0',
             'medium_design_cost' => 'nullable|numeric|min:0',
             'large_design_cost' => 'nullable|numeric|min:0',

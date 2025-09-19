@@ -24,7 +24,7 @@ class CustomProductController extends Controller
      */
     public function create()
     {
-        return view('admin.products.create-custom');
+        return view('admin.products.create');
     }
 
         public function show(CustomProduct $product)
@@ -69,21 +69,21 @@ class CustomProductController extends Controller
             'image' => $imagePath,
         ]);
 
-        return redirect()->route('admin.custom-products.index')->with('success', 'Produk kustom berhasil ditambahkan!');
+        return redirect()->route('admin.products.index')->with('success', 'Produk kustom berhasil ditambahkan!');
     }
 
     /**
      * Tampilkan formulir untuk mengedit produk kustom.
      */
-    public function edit(CustomProduct $customProduct)
+    public function edit(CustomProduct $product)
     {
-        return view('admin.products.edit-custom', compact('customProduct'));
+        return view('admin.products.edit', compact('product'));
     }
 
     /**
      * Perbarui produk kustom di database.
      */
-    public function update(Request $request, CustomProduct $customProduct)
+    public function update(Request $request, CustomProduct $product)
     {
         $request->validate([
             'name' => 'required|string|max:255',
@@ -96,15 +96,15 @@ class CustomProductController extends Controller
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
-        $imagePath = $customProduct->image;
+        $imagePath = $product->image;
         if ($request->hasFile('image')) {
-            if ($customProduct->image && Storage::disk('public')->exists($customProduct->image)) {
-                Storage::disk('public')->delete($customProduct->image);
+            if ($product->image && Storage::disk('public')->exists($product->image)) {
+                Storage::disk('public')->delete($product->image);
             }
             $imagePath = $request->file('image')->store('products', 'public');
         }
 
-        $customProduct->update([
+        $product->update([
             'name' => $request->name,
             'slug' => Str::slug($request->name),
             'description' => $request->description,
@@ -116,20 +116,20 @@ class CustomProductController extends Controller
             'image' => $imagePath,
         ]);
 
-        return redirect()->route('admin.custom-products.index')->with('success', 'Produk kustom berhasil diperbarui!');
+        return redirect()->route('admin.products.index')->with('success', 'Produk kustom berhasil diperbarui!');
     }
 
     /**
      * Hapus produk kustom dari database.
      */
-    public function destroy(CustomProduct $customProduct)
-    {
-        if ($customProduct->image && Storage::disk('public')->exists($customProduct->image)) {
-            Storage::disk('public')->delete($customProduct->image);
-        }
-
-        $customProduct->delete();
-
-        return redirect()->route('admin.custom-products.index')->with('success', 'Produk kustom berhasil dihapus!');
+public function destroy(CustomProduct $product) 
+{
+    if ($product->image && Storage::disk('public')->exists($product->image)) {
+        Storage::disk('public')->delete($product->image);
     }
+
+    $product->delete();
+
+    return redirect()->route('admin.products.index')->with('success', 'Produk berhasil dihapus!');
+}
 }

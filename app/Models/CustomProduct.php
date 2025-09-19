@@ -34,8 +34,8 @@ class CustomProduct extends Model
      *
      * @return string
      */
-    public function getRouteKeyName()
-    {
-        return 'slug';
-    }
+    // public function getRouteKeyName()
+    // {
+    //     return 'slug';
+    // }
 }

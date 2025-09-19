@@ -6,7 +6,7 @@ use Illuminate\Routing\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use App\Models\Product;
+use App\Models\CustomProduct;
 use App\Models\Order;
 use App\Models\User;
 
@@ -15,7 +15,7 @@ class UserController extends Controller
 
     public function products()
     {
-        $products = Product::where('stock', '>', 0)->get();
+        $products = CustomProduct::all();
         return view('user.products', compact('products'));
     }
 
@@ -58,7 +58,7 @@ class UserController extends Controller
         return view('user.check-status', compact('order', 'recentOrders', 'searchPerformed'));
     }
 
-    public function createOrder(Product $product)
+    public function createOrder(CustomProduct $product)
     {
         // Check if product is in stock
         if ($product->stock <= 0) {
@@ -79,7 +79,7 @@ class UserController extends Controller
             'notes' => 'nullable|string|max:500',
         ]);
 
-        $product = Product::findOrFail($request->product_id);
+        $product = CustomProduct::findOrFail($request->product_id);
 
         // Check stock availability
         if ($request->quantity > $product->stock) {

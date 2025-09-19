@@ -19,7 +19,7 @@
         <div class="col-lg-5 mb-4">
             <div class="card h-100 shadow-sm">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-drafting-compass me-2"></i>Alat Desain & Form Pemesanan</h5>
+                    <h5 class="mb-0"><i class="fas fa-drafting-compass me-2"></i>Alat Desain & Form Pemesanannnnn</h5>
                 </div>
                 <div class="card-body">
                     <form id="order-form" action="{{ route('user.orders.store') }}" method="POST">
@@ -45,12 +45,11 @@
                                         <button type="button" class="btn btn-outline-secondary"
                                             onclick="decrementQuantity()">-</button>
                                         <input type="number" class="form-control text-center" id="quantity"
-                                            name="quantity" value="1" min="1" max="{{ $product->stock }}"
-                                            required>
+                                            name="quantity" value="1" min="1" required>
                                         <button type="button" class="btn btn-outline-secondary"
                                             onclick="incrementQuantity()">+</button>
                                     </div>
-                                    <div class="form-text">Stok tersedia: {{ $product->stock }}</div>
+                                    {{-- <div class="form-text">Stok tersedia: {{ $product->stock }}</div> --}}
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="size" class="form-label">Ukuran <span
@@ -132,6 +131,9 @@
                 <div class="card-body d-flex flex-column align-items-center">
                     <div class="position-relative w-100" style="max-width: 500px;">
                         <canvas id="tshirt-canvas"></canvas>
+
+                        {{-- <canvas id="mockup-canvas" width="400" height="400">canvas>
+                        <canvas id="design-canvas" class="absolute top-0 left-0 z-10 cursor-move"></canvas> --}}
                     </div>
                     <div class="btn-group mt-3" role="group" aria-label="Tampilan Kaos">
                         <button type="button" class="btn btn-outline-primary active" id="view-depan"
@@ -179,8 +181,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            const productPrice = {{ $product->price }};
-            const maxStock = {{ $product->stock }};
+
+            const productPrice = {{ $product->price ?? 0 }};
+            const maxStock = {{ $product->stock ?? 0 }};
+
             let canvas;
             let baseTshirtImage;
             let currentColor = 'putih';
@@ -238,32 +242,34 @@
                     }
                     canvas.renderAll();
                 } else {
-                    const imageUrl = `/kaos/kaos-${color}-${view}.png`;
+                    const imageUrl = `{{ asset('kaos') }}/kaos-${color}-${view}.png`;
                     fabric.Image.fromURL(imageUrl, function(img) {
-                        img.set({
-                            left: canvas.width / 2,
-                            top: canvas.height / 2,
-                            originX: 'center',
-                            originY: 'center',
-                            selectable: false,
-                            evented: false,
-                        });
-                        img.scaleToWidth(canvas.width * 0.9);
-                        baseTshirtImage = img;
-                        loadedTshirtImages[view][color] = img;
-                        canvas.add(baseTshirtImage);
-                        canvas.sendToBack(baseTshirtImage);
-
-                        // Muat desain yang disimpan setelah gambar kaos dimuat
-                        if (designStates[view]) {
-                            canvas.loadFromJSON(designStates[view], () => {
-                                canvas.renderAll();
+                            img.set({
+                                left: canvas.width / 2,
+                                top: canvas.height / 2,
+                                originX: 'center',
+                                originY: 'center',
+                                selectable: false,
+                                evented: false,
                             });
+                            img.scaleToWidth(canvas.width * 0.9);
+                            baseTshirtImage = img;
+                            loadedTshirtImages[view][color] = img;
+                            canvas.add(baseTshirtImage);
+                            canvas.sendToBack(baseTshirtImage);
+
+                            // Muat desain yang disimpan setelah gambar kaos dimuat
+                            if (designStates[view]) {
+                                canvas.loadFromJSON(designStates[view], () => {
+                                    canvas.renderAll();
+                                });
+                            }
+                            canvas.renderAll();
                         }
-                        canvas.renderAll();
-                    }, {
-                        crossOrigin: 'anonymous'
-                    });
+                        // , {
+                        //     crossOrigin: 'anonymous'
+                        // }
+                    );
                 }
             }
 
@@ -284,43 +290,6 @@
                     newViewButton.classList.add('active');
                 }
             }
-
-            // function calculatePrice() {
-            //     let total = productPrice;
-            //     const quantity = parseInt(document.getElementById('quantity').value);
-            //     const size = document.getElementById('size').value;
-            //     total += sizePrices[size];
-
-            //     // Hitung biaya desain dari semua objek di semua sisi
-            //     let totalDesignCost = 0;
-            //     const allDesigns = [];
-
-            //     // Kumpulkan desain dari state yang disimpan
-            //     for (const view in designStates) {
-            //         if (designStates[view]) {
-            //             allDesigns.push(...designStates[view].objects.filter(obj => obj.type !==
-            //             'image')); // Exclude base t-shirt image
-            //         }
-            //     }
-            //     // Kumpulkan desain dari kanvas saat ini (belum disimpan)
-            //     const currentDesigns = canvas.getObjects().filter(obj => obj !== baseTshirtImage);
-            //     allDesigns.push(...currentDesigns.map(obj => obj.toObject()));
-
-            //     allDesigns.forEach(obj => {
-            //         if (obj.type === 'image') {
-            //             const imgArea = obj.width * obj.height * (obj.scaleX || 1) * (obj.scaleY || 1);
-            //             if (imgArea < 100000) totalDesignCost += designCosts.small;
-            //             else if (imgArea < 300000) totalDesignCost += designCosts.medium;
-            //             else totalDesignCost += designCosts.large;
-            //         }
-            //     });
-
-            //     total += totalDesignCost;
-            //     total *= quantity;
-
-            //     document.getElementById('total-price').innerText = `Rp ${total.toLocaleString('id-ID')}`;
-            //     document.getElementById('total_price_input').value = total;
-            // }
 
             function calculatePrice() {
                 // 1. Hitung harga dasar per unit (termasuk biaya ukuran)
@@ -378,11 +347,54 @@
 
                 updateCanvasForView(currentColor, currentView);
 
-                // Tambahkan event listener untuk perubahan pada objek di kanvas
                 canvas.on('object:modified', calculatePrice);
                 canvas.on('object:added', calculatePrice);
                 canvas.on('object:removed', calculatePrice);
             }
+
+            const deleteIcon =
+                "data:image/svg+xml;utf8," +
+                "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'>" +
+                "<circle cx='12' cy='12' r='12' fill='red'/>" +
+                "<path d='M7 7 L17 17 M17 7 L7 17' stroke='white' stroke-width='2'/>" +
+                "</svg>";
+
+            const deleteImg = document.createElement("img");
+            deleteImg.src = deleteIcon;
+
+            function deleteObject(_eventData, transform) {
+                const canvas = transform.target.canvas;
+                if (transform.target !== baseTshirtImage) {
+                    canvas.remove(transform.target);
+                    canvas.requestRenderAll();
+                    calculatePrice();
+                }
+
+                const fileInput = document.getElementById("uploadImage");
+                if (fileInput) {
+                    fileInput.value = ""; // kosongin input file
+                }
+            }
+
+            function renderIcon(ctx, left, top, _styleOverride, fabricObject) {
+                const size = this.cornerSize;
+                ctx.save();
+                ctx.translate(left, top);
+                ctx.rotate(fabric.util.degreesToRadians(fabricObject.angle));
+                ctx.drawImage(deleteImg, -size / 2, -size / 2, size, size);
+                ctx.restore();
+            }
+
+            fabric.Object.prototype.controls.deleteControl = new fabric.Control({
+                x: 0.5,
+                y: -0.5,
+                offsetY: -10,
+                cursorStyle: "pointer",
+                mouseUpHandler: deleteObject,
+                render: renderIcon,
+                cornerSize: 24
+            });
+
 
             document.getElementById('design-file').addEventListener('change', function(e) {
                 const files = e.target.files;
@@ -431,7 +443,8 @@
                 for (const view of views) {
                     await new Promise(resolve => {
                         canvas.clear();
-                        const shirtUrl = `/kaos/kaos-${currentColor}-${view}.png`;
+                        const shirtUrl =
+                            `{{ asset('kaos') }}/kaos-${currentColor}-${view}.png`;
                         fabric.Image.fromURL(shirtUrl, function(img) {
                             img.set({
                                 left: canvas.width / 2,

@@ -5,18 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-// class Product extends Model
-// {
-//     protected $fillable = [
-//         'name',
-//         'price',
-//         'description',
-//         'stock',
-//         'image',
-//         'category',
-//     ];
-// }
-
 class Product extends Model
 {
     use HasFactory;
@@ -32,9 +20,9 @@ class Product extends Model
         'description',
         'category',
         'price',
-        'small_design_cost',  // <-- Tambahkan baris ini
-        'medium_design_cost', // <-- Tambahkan baris ini
-        'large_design_cost',  // <-- Tambahkan baris ini
+        'small_design_cost', 
+        'medium_design_cost',
+        'large_design_cost', 
         'image',
     ];
 
@@ -43,8 +31,8 @@ class Product extends Model
      *
      * @return string
      */
-    public function getRouteKeyName()
-    {
-        return 'slug';
-    }
+    // public function getRouteKeyName()
+    // {
+    //     return 'slug';
+    // }
 }

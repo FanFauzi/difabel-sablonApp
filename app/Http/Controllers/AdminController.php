@@ -33,7 +33,7 @@ class AdminController extends Controller
      */
     public function createProduct()
     {
-        return view('admin.products.create');
+        return view('admin.products.create-custom');
     }
 
     /**
