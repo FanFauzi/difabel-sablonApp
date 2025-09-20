@@ -13,23 +13,98 @@ use App\Models\CustomProduct;
 
 class OrderController extends Controller
 {
-  /**
-   * Tampilkan formulir pembuatan pesanan (desain).
-   */
-  // public function createDesign(Product $product)
-  // {
-  //     // Cek stok produk
-  //     if ($product->stock <= 0) {
-  //         return redirect()->route('user.products')->with('error', 'Produk ini sedang tidak tersedia.');
-  //     }
-
-  //     return view('user.design-and-order', compact('product'));
-  // }
-
-  // Ganti definisi metode ini
+  // Menampilkan halaman desain & order
   public function createDesign(CustomProduct $customProduct)
   {
+    if ($customProduct->stock <= 0) {
+      return redirect()->route('user.products')->with('error', 'Produk ini sedang tidak tersedia.');
+    }
     return view('user.design-and-order', ['product' => $customProduct]);
+  }
+
+  // Menyimpan pesanan baru
+  public function createOrder(CustomProduct $product)
+  {
+    if ($product->stock <= 0) {
+      return redirect()->route('user.products')->with('error', 'Maaf, produk ini sedang habis.');
+    }
+    return view('user.design-and-order', compact('product'));
+  }
+
+  public function store(Request $request)
+  {
+    $request->validate([
+      'product_id' => 'required|exists:custom_products,id',
+      'quantity' => 'required|integer|min:1',
+      'design_notes' => 'nullable|string|max:1000',
+      'size' => 'required|in:S,M,L,XL,XXL',
+      'selected_color' => 'required|string',
+      'total_price_input' => 'required|numeric',
+    ]);
+
+    $product = CustomProduct::findOrFail($request->product_id);
+
+    if ($request->quantity > $product->stock) {
+      return back()->withInput()->with('error', 'Jumlah pesanan (' . $request->quantity . ') melebihi stok yang tersedia (' . $product->stock . ').');
+    }
+
+    $designPaths = [];
+    $views = ['depan', 'belakang', 'samping'];
+    foreach ($views as $view) {
+      $inputName = 'design_data_url_' . $view;
+      if ($request->filled($inputName)) {
+        $dataUrl = $request->input($inputName);
+        list($type, $data) = explode(';', $dataUrl);
+        list(, $data) = explode(',', $data);
+        $imageData = base64_decode($data);
+
+        $fileName = 'designs/' . uniqid() . '_' . $view . '.png';
+        \Storage::disk('public')->put($fileName, $imageData);
+        $designPaths[$inputName] = $fileName;
+      }
+    }
+
+    $order = Order::create([
+      'user_id' => Auth::id(),
+      'product_id' => $request->product_id,
+      'quantity' => $request->quantity,
+      'size' => $request->size,
+      'color' => $request->selected_color,
+      'design_description' => $request->design_notes,
+      'notes' => $request->design_notes,
+      'total_price' => $request->total_price_input,
+      'status' => 'pending',
+      'design_file_depan' => $designPaths['design_data_url_depan'] ?? null,
+      'design_file_belakang' => $designPaths['design_data_url_belakang'] ?? null,
+      'design_file_samping' => $designPaths['design_data_url_samping'] ?? null,
+    ]);
+
+    $product->decrement('stock', $request->quantity);
+
+    $this->sendWhatsAppNotification($order);
+
+    return redirect()->route('user.orders')->with('success', 'Pesanan berhasil dibuat! Kami akan segera memproses pesanan Anda.');
+  }
+
+  // Fungsi helper untuk menyimpan gambar desain
+  private function saveDesignImage(Request $request, string $inputName): ?string
+  {
+    if (!$request->filled($inputName)) {
+      return null;
+    }
+
+    $dataUrl = $request->input($inputName);
+    @list($type, $data) = explode(';', $dataUrl);
+    @list(, $data) = explode(',', $data);
+
+    if ($data) {
+      $imageData = base64_decode($data);
+      $fileName = 'designs/' . uniqid() . '_' . str_replace('design_file_', '', $inputName) . '.png';
+      Storage::disk('public')->put($fileName, $imageData);
+      return $fileName;
+    }
+
+    return null;
   }
 
   public function downloadDesign(Order $order)
@@ -55,81 +130,23 @@ class OrderController extends Controller
     return response()->download($filePath, $filename);
   }
   /**
-   * Simpan pesanan baru.
-   */
-  public function store(Request $request)
-  {
-    // 1. Validasi data
-    $request->validate([
-      'product_id' => 'required|exists:products,id',
-      'quantity' => 'required|integer|min:1',
-      'size' => 'required|string',
-      'selected_color' => 'required|string',
-      'design_notes' => 'nullable|string',
-      'total_price_input' => 'required|numeric',
-      'design_data_url_depan' => 'nullable|string',
-      'design_data_url_belakang' => 'nullable|string',
-      'design_data_url_samping' => 'nullable|string',
-    ]);
-
-    // 2. Proses dan simpan gambar desain
-    $designPaths = [];
-    $views = ['depan', 'belakang', 'samping'];
-
-    foreach ($views as $view) {
-      $dataUrlInput = "design_data_url_{$view}";
-      if ($request->has($dataUrlInput) && $request->input($dataUrlInput)) {
-        $dataUrl = $request->input($dataUrlInput);
-
-        // Ambil data gambar dari data URL
-        list($type, $data) = explode(';', $dataUrl);
-        list(, $data) = explode(',', $data);
-        $imageData = base64_decode($data);
-
-        // Tentukan nama file dan path
-        $fileName = 'designs/' . Auth::id() . '_' . time() . "_{$view}.png";
-
-        // Simpan file ke direktori storage
-        Storage::disk('public')->put($fileName, $imageData);
-
-        // Simpan path file untuk dimasukkan ke database
-        $designPaths[$view] = $fileName;
-      }
-    }
-
-    // 3. Buat dan simpan instance Order baru
-    $order = new Order();
-    $order->user_id = Auth::id();
-    $order->product_id = $request->product_id;
-    $order->quantity = $request->quantity;
-    $order->size = $request->size;
-    $order->color = $request->selected_color;
-    $order->design_description = $request->design_notes;
-    $order->total_price = $request->total_price_input;
-    $order->status = 'pending';
-    $order->design_file_depan = $designPaths['depan'] ?? null;
-    $order->design_file_belakang = $designPaths['belakang'] ?? null;
-    $order->design_file_samping = $designPaths['samping'] ?? null;
-
-    $order->save();
-
-    // 4. Kirim notifikasi ke admin via WhatsApp
-    $this->sendWhatsAppNotification($order);
-
-    // 5. Redirect ke halaman detail pesanan
-    return redirect()->route('user.orders.show', $order->id)->with('success', 'Pesanan berhasil dibuat!');
-  }
-
-  /**
    * Kirim notifikasi pesanan ke WhatsApp admin.
    */
   private function sendWhatsAppNotification(Order $order)
   {
-    $adminPhoneNumber = '6281234567890'; // Ganti dengan nomor WhatsApp admin Anda
-    $user = Auth::user();
-    $product = Product::find($order->product_id);
+    // Ambil kredensial dari file .env
+    $adminPhoneNumber = env('ADMIN_WHATSAPP');
+    $token = env('FONNTE_TOKEN');
 
-    $message = "🎉 *PESANAN BARU!* 🎉\n\n";
+    if (!$adminPhoneNumber || !$token) {
+      Log::error('WhatsApp credentials (ADMIN_WHATSAPP or FONNTE_TOKEN) are not set in .env file.');
+      return;
+    }
+
+    $user = Auth::user();
+    $product = CustomProduct::find($order->product_id);
+
+    $message = "🎉 *PESANAN BARU MASUK!* 🎉\n\n";
     $message .= "*ID Pesanan*: #{$order->id}\n";
     $message .= "*Dari*: {$user->name}\n";
     $message .= "*Produk*: {$product->name}\n";
@@ -137,23 +154,22 @@ class OrderController extends Controller
     $message .= "*Ukuran*: {$order->size}\n";
     $message .= "*Warna*: {$order->color}\n";
     $message .= "*Total*: Rp " . number_format($order->total_price, 0, ',', '.') . "\n\n";
-    $message .= "Silakan cek dashboard untuk detail lengkap dan hubungi user untuk pengiriman file desain.\n";
-    $message .= "Link: " . route('user.orders.show', $order->id);
+    $message .= "Silakan cek dashboard admin untuk melihat detail lengkap pesanan.\n";
+    $message .= "Link: " . route('admin.orders.show', $order->id);
 
     try {
       $client = new Client();
-      $client->post('https://api.your-whatsapp-provider.com/send', [
+      $client->post('https://api.fonnte.com/send', [
         'headers' => [
-          'Authorization' => 'Bearer YOUR_API_TOKEN',
-          'Content-Type' => 'application/json',
+          'Authorization' => $token,
         ],
-        'json' => [
-          'to' => $adminPhoneNumber,
+        'form_params' => [
+          'target' => $adminPhoneNumber,
           'message' => $message,
         ],
       ]);
     } catch (\Exception $e) {
-      Log::error('WhatsApp notification failed: ' . $e->getMessage());
+      Log::error('Gagal mengirim notifikasi WhatsApp: ' . $e->getMessage());
     }
   }
 }

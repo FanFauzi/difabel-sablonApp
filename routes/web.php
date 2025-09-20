@@ -39,6 +39,10 @@ Route::get('/force-logout', function () {
 // Admin Routes
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
 
+    Route::get('/admin/home', function () {
+        return view('home');
+    })->name('admin.home');
+
     // Rute untuk manajemen produk standar
     Route::resource('products', CustomProductController::class);
 
@@ -133,7 +137,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
             'status' => $request->status,
             'notes' => $request->notes,
         ]);
-        return redirect()->route('orders.index')->with('success', 'Status pesanan berhasil diperbarui!');
+        return redirect()->route('admin.orders.index')->with('success', 'Status pesanan berhasil diperbarui!');
     })->name('orders.update');
     Route::get('/orders/{id}/delete', function ($id) {
         $order = \App\Models\Order::with(['user', 'orderItems.product'])->findOrFail($id);
@@ -171,48 +175,80 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 Route::middleware(['auth', 'role:user'])->group(function () {
 
     // Home
-    Route::get('/user/home', function () {
-        return view('home');
-    })->name('home');
+    // Route::get('/user/home', function () {
+    //     return view('home');
+    // })->name('home');
 
-    // Products
-    Route::get('/products', [UserController::class, 'products'])->name('user.products');
+    // // Products
+    // Route::get('/products', [UserController::class, 'products'])->name('user.products');
 
     // // Orders
     // Route::get('/orders', [UserController::class, 'orders'])->name('user.orders');
     // Route::get('/orders/{order}', [UserController::class, 'showOrder'])->name('user.orders.show');
 
-    // // Rute untuk Desain & Pemesanan Produk 
-    // // Menggunakan satu rute untuk proses pembuatan pesanan
-    // Route::get('/orders/create/{product}', [OrderController::class, 'createDesign'])->name('user.orders.create');
-    // Route::post('/orders', [OrderController::class, 'store'])->name('user.orders.store');
+    // Route::get('/orders/create/{customProduct}', [OrderController::class, 'createDesign'])->name('orders.create');
+    // Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
 
-    // Orders
+    // // Create & Store Order
+    // Route::get('/orders/create/{product}', [UserController::class, 'createOrder'])->name('user.orders.create');
+    // Route::post('/orders', [UserController::class, 'storeOrder'])->name('user.orders.store');
+
+
+    // // User Dashboard
+    // Route::get('/user/dashboard', function () {
+    //     /** @var \App\Models\User $user */
+    //     $user = Auth::user();
+    //     $totalOrders = $user->orders()->count();
+    //     $pendingOrders = $user->orders()->where('status', 'pending')->count();
+    //     $processingOrders = $user->orders()->where('status', 'proses')->count();
+    //     $completedOrders = $user->orders()->where('status', 'selesai')->count();
+    //     $latestOrder = $user->orders()->latest()->first();
+
+    //     return view('user.dashboard', compact('totalOrders', 'pendingOrders', 'processingOrders', 'completedOrders', 'latestOrder'));
+    // })->name('user.dashboard');
+
+    // // Order Status Checking
+    // Route::get('/check-status', [UserController::class, 'checkStatus'])->name('user.check-status');
+
+    // // Profile
+    // Route::get('/profile', [UserController::class, 'showProfile'])->name('user.profile');
+    // Route::put('/profile', [UserController::class, 'updateProfile'])->name('user.profile.update');
+
+    Route::get('/user/home', function () {
+        return view('home');
+    })->name('user.home');
+
+    // Rute sederhana seperti dashboard bisa tetap di sini
+    Route::get('user/dashboard', function () {
+        $user = Auth::user();
+        $summary = [
+            'totalOrders' => $user->orders()->count(),
+            'pendingOrders' => $user->orders()->where('status', 'pending')->count(),
+            'processingOrders' => $user->orders()->where('status', 'proses')->count(),
+            'completedOrders' => $user->orders()->where('status', 'selesai')->count(),
+            'latestOrder' => $user->orders()->latest()->first(),
+        ];
+        return view('user.dashboard', $summary);
+    })->name('dashboard');
+
+    // -- Produk --
+    Route::get('/products', [UserController::class, 'products'])->name('user.products');
+
+    // -- Pesanan (Orders) --
+    // Menampilkan halaman histori pesanan
     Route::get('/orders', [UserController::class, 'orders'])->name('user.orders');
+
+    // Menampilkan halaman desain & order
+    Route::get('/orders/create/{customProduct}', [OrderController::class, 'createDesign'])->name('user.orders.create');
+
+    // Menyimpan pesanan baru
+    Route::post('/orders', [OrderController::class, 'store'])->name('user.orders.store');
+
+    // Menampilkan detail satu pesanan
     Route::get('/orders/{order}', [UserController::class, 'showOrder'])->name('user.orders.show');
 
-    // Create & Store Order
-    Route::get('/orders/create/{product}', [UserController::class, 'createOrder'])->name('user.orders.create');
-    Route::post('/orders', [UserController::class, 'storeOrder'])->name('user.orders.store');
-
-
-    // User Dashboard
-    Route::get('/user/dashboard', function () {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-        $totalOrders = $user->orders()->count();
-        $pendingOrders = $user->orders()->where('status', 'pending')->count();
-        $processingOrders = $user->orders()->where('status', 'proses')->count();
-        $completedOrders = $user->orders()->where('status', 'selesai')->count();
-        $latestOrder = $user->orders()->latest()->first();
-
-        return view('user.dashboard', compact('totalOrders', 'pendingOrders', 'processingOrders', 'completedOrders', 'latestOrder'));
-    })->name('user.dashboard');
-
-    // Order Status Checking
+    // -- Lainnya --
     Route::get('/check-status', [UserController::class, 'checkStatus'])->name('user.check-status');
-
-    // Profile
     Route::get('/profile', [UserController::class, 'showProfile'])->name('user.profile');
     Route::put('/profile', [UserController::class, 'updateProfile'])->name('user.profile.update');
 });

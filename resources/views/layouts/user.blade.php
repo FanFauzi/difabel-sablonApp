@@ -39,15 +39,15 @@
                     </div>
                     <ul class="nav flex-column">
                         <li class="nav-item mb-1">
-                            <a class="nav-link text-white {{ request()->routeIs('user.dashboard') ? 'active' : '' }}"
-                                href="{{ route('user.dashboard') }}">
+                            <a class="nav-link text-white {{ request()->routeIs('dashboard') ? 'active' : '' }}"
+                                href="{{ route('dashboard') }}">
                                 <i class="fas fa-tachometer-alt me-2" style="font-size: 0.9rem;"></i>
                                 <span style="font-size: 0.8rem;">Dashboard</span>
                             </a>
                         </li>
                         <li class="nav-item mb-1">
                             <a class="nav-link text-white {{ request()->routeIs('home') ? 'active' : '' }}"
-                                href="{{ route('home') }}">
+                                href="{{ route('user.home') }}">
                                 <i class="fa-solid fa-house me-2" style="font-size: 0.9rem;"></i>
                                 <span style="font-size: 0.8rem;">Home</span>
                             </a>

@@ -8,11 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 class Order extends Model
 {
     use HasFactory;
-    
+
     protected $table = 'orders';
     protected $fillable = [
         'user_id',
         'product_id',
+        'custom_product_id',
         'quantity',
         'size',
         'color',
@@ -20,13 +21,17 @@ class Order extends Model
         'status',
         'total_price',
         'notes',
-        'design_file_depan', // <-- Ganti dari design_url_depan
-        'design_file_belakang', // <-- Ganti dari design_url_belakang
-        'design_file_samping', // <-- Ganti dari design_url_samping
+        'design_file_depan',
+        'design_file_belakang',
+        'design_file_samping',
+        'design_file',
+        'design_size',
+        'design_cost',
     ];
 
     protected $casts = [
         'total_price' => 'decimal:2',
+        'design_cost' => 'decimal:2',
     ];
 
     public function user()
@@ -36,14 +41,14 @@ class Order extends Model
 
     public function product()
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(CustomProduct::class, 'product_id');
     }
 
     public function orderItems()
     {
         return $this->hasMany(OrderItem::class);
     }
-    
+
     public static function getStatusOptions()
     {
         return [
@@ -53,10 +58,10 @@ class Order extends Model
             'ditolak' => 'Ditolak',
         ];
     }
-    
+
     public function getStatusColor()
     {
-        return match($this->status) {
+        return match ($this->status) {
             'pending' => 'warning',
             'proses' => 'info',
             'selesai' => 'success',
@@ -64,10 +69,10 @@ class Order extends Model
             default => 'secondary',
         };
     }
-    
+
     public function getStatusBadgeClass()
     {
-        return match($this->status) {
+        return match ($this->status) {
             'pending' => 'bg-warning text-dark',
             'proses' => 'bg-info text-dark',
             'selesai' => 'bg-success text-white',

@@ -7,7 +7,7 @@
         <div class="col-12">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{ route('user.dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
                     <li class="breadcrumb-item"><a href="{{ route('user.products') }}">Produk</a></li>
                     <li class="breadcrumb-item active">Desain & Pesan</li>
                 </ol>
@@ -71,7 +71,6 @@
                                 <div class="col-12">
                                     <label class="form-label">Warna Produk</label>
                                     <div id="color-options" class="d-flex justify-content-center flex-wrap gap-2">
-                                        {{-- Tombol akan dibuat oleh JavaScript --}}
                                     </div>
                                 </div>
                                 <div class="col-12">
@@ -131,9 +130,6 @@
                 <div class="card-body d-flex flex-column align-items-center">
                     <div class="position-relative w-100" style="max-width: 500px;">
                         <canvas id="tshirt-canvas"></canvas>
-
-                        {{-- <canvas id="mockup-canvas" width="400" height="400">canvas>
-                        <canvas id="design-canvas" class="absolute top-0 left-0 z-10 cursor-move"></canvas> --}}
                     </div>
                     <div class="btn-group mt-3" role="group" aria-label="Tampilan Kaos">
                         <button type="button" class="btn btn-outline-primary active" id="view-depan"

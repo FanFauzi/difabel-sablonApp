@@ -1,3 +1,4 @@
+{{-- admin/product/create.blade.php --}}
 @extends('layouts.admin')
 
 @section('title', 'Tambah Produk Kustom Baru')
@@ -71,7 +72,7 @@
 
                         <div class="mb-4">
                             <h6 class="text-primary mb-3">
-                                <i class="fas fa-dollar-sign me-2"></i>Harga Produk
+                                <i class="fas fa-dollar-sign me-2"></i>Harga & Stok Produk
                             </h6>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
@@ -90,6 +91,20 @@
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
+                                {{-- Penambahan Input Stok --}}
+                                <div class="col-md-6 mb-3">
+                                    <label for="stock" class="form-label fw-bold">
+                                        <i class="fas fa-boxes text-primary me-1"></i>Stok
+                                    </label>
+                                    <input type="number" class="form-control form-control-lg @error('stock') is-invalid @enderror"
+                                           id="stock" name="stock" value="{{ old('stock', 0) }}"
+                                           placeholder="0" required min="0">
+                                    <div class="form-text">Jumlah stok produk yang tersedia</div>
+                                    @error('stock')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                {{-- Akhir Penambahan --}}
                             </div>
                             <div class="row mt-3">
                                 <div class="col-12 mb-2">
@@ -98,15 +113,15 @@
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <label for="small_design_cost" class="form-label fw-bold">Biaya Kecil (Rp)</label>
-                                    <input type="text" class="form-control" id="small_design_cost" name="small_design_cost" placeholder="Rp 0">
+                                    <input type="text" class="form-control" id="small_design_cost" name="small_design_cost" placeholder="Rp 0" value="{{ old('small_design_cost') }}">
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <label for="medium_design_cost" class="form-label fw-bold">Biaya Sedang (Rp)</label>
-                                    <input type="text" class="form-control" id="medium_design_cost" name="medium_design_cost" placeholder="Rp 0">
+                                    <input type="text" class="form-control" id="medium_design_cost" name="medium_design_cost" placeholder="Rp 0" value="{{ old('medium_design_cost') }}">
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <label for="large_design_cost" class="form-label fw-bold">Biaya Besar (Rp)</label>
-                                    <input type="text" class="form-control" id="large_design_cost" name="large_design_cost" placeholder="Rp 0">
+                                    <input type="text" class="form-control" id="large_design_cost" name="large_design_cost" placeholder="Rp 0" value="{{ old('large_design_cost') }}">
                                 </div>
                             </div>
                         </div>
@@ -182,6 +197,9 @@
                         </h6>
                         <ul class="small text-muted mb-0">
                             <li>Harga Dasar adalah harga produk polos sebelum desain</li>
+                            {{-- Penambahan Tips Stok --}}
+                            <li>Pastikan jumlah stok sesuai dengan ketersediaan barang</li>
+                            {{-- Akhir Penambahan --}}
                             <li>Biaya desain akan ditambahkan secara otomatis di halaman pemesanan</li>
                         </ul>
                     </div>
@@ -207,6 +225,7 @@
     </div>
 </div>
 
+{{-- SCRIPT TETAP SAMA --}}
 <script>
 // Image preview functionality
 document.getElementById('image').addEventListener('change', function(e) {
@@ -245,17 +264,20 @@ priceInputs.forEach(id => {
     if (input) {
         input.addEventListener('input', function(e) {
             let value = this.value.replace(/[^\d]/g, '');
-            if (value) {
-                this.value = parseInt(value).toLocaleString('id-ID');
-            }
             if (id === 'price_display') {
                 document.getElementById('price').value = value;
+            }
+            if (value) {
+                this.value = parseInt(value).toLocaleString('id-ID');
             }
         });
         
         // Initialize formatting on page load
         document.addEventListener('DOMContentLoaded', function() {
             let value = input.value.replace(/[^\d]/g, '');
+             if (id === 'price_display') {
+                document.getElementById('price').value = value;
+            }
             if (value) {
                 input.value = parseInt(value).toLocaleString('id-ID');
             }
@@ -282,6 +304,14 @@ document.getElementById('productForm').addEventListener('submit', function(e) {
         priceDisplay.focus();
         return false;
     }
+
+    // Unformat design cost inputs before submit
+    ['small_design_cost', 'medium_design_cost', 'large_design_cost'].forEach(id => {
+        const input = document.getElementById(id);
+        if (input) {
+            input.value = input.value.replace(/[^\d]/g, '') || '0';
+        }
+    });
 });
 </script>
 

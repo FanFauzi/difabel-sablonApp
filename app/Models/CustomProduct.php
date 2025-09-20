@@ -23,6 +23,7 @@ class CustomProduct extends Model
         'description',
         'category',
         'price',
+        'stock',
         'small_design_cost',
         'medium_design_cost',
         'large_design_cost',

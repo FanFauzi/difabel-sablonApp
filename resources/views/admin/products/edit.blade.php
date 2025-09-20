@@ -1,3 +1,4 @@
+{{-- admin/product/edit.blade.php --}}
 @extends('layouts.admin')
 
 @section('title', 'Edit Produk Kustom - ' . $product->name)
@@ -28,8 +29,6 @@
                         @csrf
                         @method('PUT')
 
-                        {{-- Ganti semua $products menjadi $product di bawah ini --}}
-
                         <div class="mb-4">
                             <h6 class="text-info mb-3"><i class="fas fa-info-circle me-2"></i>Informasi Dasar</h6>
                             <div class="row">
@@ -45,6 +44,8 @@
                                         <option value="kemeja" {{ old('category', $product->category) == 'kemeja' ? 'selected' : '' }}>Kemeja</option>
                                         <option value="jaket" {{ old('category', $product->category) == 'jaket' ? 'selected' : '' }}>Jaket</option>
                                         <option value="topi" {{ old('category', $product->category) == 'topi' ? 'selected' : '' }}>Topi</option>
+                                        {{-- Penambahan Kategori Tas --}}
+                                        <option value="tas" {{ old('category', $product->category) == 'tas' ? 'selected' : '' }}>Tas</option>
                                     </select>
                                 </div>
                                 <div class="col-12 mb-3">
@@ -61,6 +62,12 @@
                                     <label for="price" class="form-label fw-bold"><i class="fas fa-money-bill-wave text-info me-1"></i>Harga (Rp)</label>
                                     <input type="number" class="form-control" id="price" name="price" value="{{ old('price', $product->price) }}" required min="1000">
                                 </div>
+                                {{-- Penambahan Input Stok --}}
+                                <div class="col-md-6 mb-3">
+                                    <label for="stock" class="form-label fw-bold"><i class="fas fa-boxes text-info me-1"></i>Stok</label>
+                                    <input type="number" class="form-control" id="stock" name="stock" value="{{ old('stock', $product->stock) }}" required min="0">
+                                </div>
+                                {{-- Akhir Penambahan --}}
                             </div>
                         </div>
                         

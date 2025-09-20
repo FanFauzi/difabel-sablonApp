@@ -47,8 +47,8 @@ class UserController extends Controller
         // If order ID is provided, search for it
         if ($request->has('order_id') && $request->order_id) {
             $order = Order::where('id', $request->order_id)
-                         ->where('user_id', $user->id)
-                         ->first();
+                ->where('user_id', $user->id)
+                ->first();
             $searchPerformed = true;
         }
 
@@ -58,73 +58,67 @@ class UserController extends Controller
         return view('user.check-status', compact('order', 'recentOrders', 'searchPerformed'));
     }
 
-    public function createOrder(CustomProduct $product)
-    {
-        // Check if product is in stock
-        if ($product->stock <= 0) {
-            return redirect()->route('user.products')->with('error', 'Produk ini sedang tidak tersedia.');
-        }
+    // public function createOrder(CustomProduct $product)
+    // {
+    //     if ($product->stock <= 0) {
+    //         return redirect()->route('user.products')->with('error', 'Maaf, produk ini sedang habis.');
+    //     }
+    //     return view('user.design-and-order', compact('product'));
+    // }
 
-        return view('user.order-create', compact('product'));
-    }
+    // public function storeOrder(Request $request)
+    // {
+    //     $request->validate([
+    //         'product_id' => 'required|exists:custom_products,id',
+    //         'quantity' => 'required|integer|min:1',
+    //         'design_notes' => 'nullable|string|max:1000',
+    //         'size' => 'required|in:S,M,L,XL,XXL',
+    //         'selected_color' => 'required|string',
+    //         'total_price_input' => 'required|numeric',
+    //     ]);
 
-    public function storeOrder(Request $request)
-    {
-        $request->validate([
-            'product_id' => 'required|exists:products,id',
-            'quantity' => 'required|integer|min:1',
-            'design_description' => 'required|string|max:1000',
-            'design_file' => 'required|file|mimes:jpeg,jpg,png,pdf,doc,docx|max:5120',
-            'design_size' => 'required|in:small,medium,large', // Tambahan: validasi ukuran desain
-            'notes' => 'nullable|string|max:500',
-        ]);
+    //     $product = CustomProduct::findOrFail($request->product_id);
 
-        $product = CustomProduct::findOrFail($request->product_id);
+    //     if ($request->quantity > $product->stock) {
+    //         return back()->withInput()->with('error', 'Jumlah pesanan (' . $request->quantity . ') melebihi stok yang tersedia (' . $product->stock . ').');
+    //     }
 
-        // Check stock availability
-        if ($request->quantity > $product->stock) {
-            return back()->withErrors(['quantity' => 'Jumlah pesanan melebihi stok yang tersedia.']);
-        }
+    //     $designPaths = [];
+    //     $views = ['depan', 'belakang', 'samping'];
+    //     foreach ($views as $view) {
+    //         $inputName = 'design_data_url_' . $view;
+    //         if ($request->filled($inputName)) {
+    //             $dataUrl = $request->input($inputName);
+    //             list($type, $data) = explode(';', $dataUrl);
+    //             list(, $data) = explode(',', $data);
+    //             $imageData = base64_decode($data);
 
-        // Handle file upload
-        $designFilePath = null;
-        if ($request->hasFile('design_file')) {
-            $designFilePath = $request->file('design_file')->store('designs', 'public');
-        }
+    //             $fileName = 'designs/' . uniqid() . '_' . $view . '.png';
+    //             \Storage::disk('public')->put($fileName, $imageData);
+    //             $designPaths[$inputName] = $fileName;
+    //         }
+    //     }
 
-        // Calculate design cost based on selected size
-        $designCost = 0;
-        switch ($request->design_size) {
-            case 'small':
-                $designCost = $product->small_design_cost;
-                break;
-            case 'medium':
-                $designCost = $product->medium_design_cost;
-                break;
-            case 'large':
-                $designCost = $product->large_design_cost;
-                break;
-        }
+    //     Order::create([
+    //         'user_id' => Auth::id(),
+    //         'product_id' => $request->product_id,
+    //         'quantity' => $request->quantity,
+    //         'size' => $request->size,
+    //         'color' => $request->selected_color,
+    //         'design_description' => $request->design_notes,
+    //         'notes' => $request->design_notes,
+    //         'total_price' => $request->total_price_input,
+    //         'status' => 'pending',
+    //         'design_file_depan' => $designPaths['design_data_url_depan'] ?? null,
+    //         'design_file_belakang' => $designPaths['design_data_url_belakang'] ?? null,
+    //         'design_file_samping' => $designPaths['design_data_url_samping'] ?? null,
+    //     ]);
 
-        // Calculate total price
-        $totalPrice = ($product->price * $request->quantity) + $designCost;
+    //     // PERBAIKAN: Kurangi stok di sini, HANYA SEKALI setelah pesanan berhasil dibuat
+    //     $product->decrement('stock', $request->quantity);
 
-        // Create order
-        Order::create([
-            'user_id' => Auth::id(),
-            'product_id' => $request->product_id,
-            'quantity' => $request->quantity,
-            'design_description' => $request->design_description,
-            'design_file' => $designFilePath,
-            'design_size' => $request->design_size, // Simpan ukuran desain
-            'design_cost' => $designCost, // Simpan biaya desain
-            'notes' => $request->notes,
-            'total_price' => $totalPrice,
-            'status' => 'pending',
-        ]);
-
-        return redirect()->route('user.orders')->with('success', 'Pesanan berhasil dibuat! Kami akan segera memproses pesanan Anda.');
-    }
+    //     return redirect()->route('user.orders')->with('success', 'Pesanan berhasil dibuat! Kami akan segera memproses pesanan Anda.');
+    // }
 
     public function showProfile()
     {

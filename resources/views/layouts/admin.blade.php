@@ -36,13 +36,13 @@
                             </div>
                             <span class="nav-text">Dashboard</span>
                         </a>
-                        <a class="nav-link main-nav {{ request()->routeIs('home') ? 'active' : '' }}"
-                            href="{{ route('home') }}">
+                        {{-- <a class="nav-link main-nav {{ request()->routeIs('home') ? 'active' : '' }}"
+                            href="{{ route('user.home') }}">
                             <div class="nav-icon">
                                 <i class="fa-solid fa-house"></i>
                             </div>
                             <span class="nav-text">Home</span>
-                        </a>
+                        </a> --}}
                     </div>
 
                     <!-- Management Section -->

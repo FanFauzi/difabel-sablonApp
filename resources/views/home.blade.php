@@ -39,20 +39,18 @@
                 <li><a href="#produk" class="hover:text-blue-600 transition">Produk</a></li>
                 <li><a href="#tentang" class="hover:text-blue-600 transition">Tentang</a></li>
 
-                {{-- Begin conditional logic for desktop menu --}}
                 @auth
                     @if (Auth::user()->role === 'admin')
                         <li><a href="{{ route('admin.dashboard') }}" class="hover:text-blue-600 transition">Dashboard</a>
                         </li>
                     @else
-                        <li><a href="{{ route('user.dashboard') }}" class="hover:text-blue-600 transition">Dashboard</a>
+                        <li><a href="{{ route('dashboard') }}" class="hover:text-blue-600 transition">Dashboard</a>
                         </li>
                     @endif
                 @endauth
                 @guest
                     <li><a href="{{ route('login') }}" class="hover:text-blue-600 transition">Login</a></li>
                 @endguest
-                {{-- End conditional logic for desktop menu --}}
             </ul>
 
             <button id="mobile-menu-btn" class="md:hidden focus:outline-none">
@@ -66,30 +64,26 @@
             </button>
         </div>
 
-        {{-- Begin conditional logic for mobile menu --}}
         <div id="mobile-menu" class="hidden md:hidden bg-white shadow-inner border-t border-gray-200">
             <ul class="flex flex-col py-4 space-y-3 text-gray-700 font-medium px-6">
                 <li><a href="#fitur" class="hover:text-blue-600 transition mobile-link">Fitur</a></li>
                 <li><a href="#produk" class="hover:text-blue-600 transition mobile-link">Produk</a></li>
                 <li><a href="#tentang" class="hover:text-blue-600 transition mobile-link">Tentang</a></li>
 
-                {{-- Begin conditional logic for mobile menu --}}
                 @auth
                     @if (Auth::user()->role === 'admin')
                         <li><a href="{{ route('admin.dashboard') }}"
                                 class="hover:text-blue-600 transition mobile-link">Dashboard</a></li>
                     @else
-                        <li><a href="{{ route('user.dashboard') }}"
+                        <li><a href="{{ route('dashboard') }}"
                                 class="hover:text-blue-600 transition mobile-link">Dashboard</a></li>
                     @endif
                 @endauth
                 @guest
                     <li><a href="{{ route('login') }}" class="hover:text-blue-600 transition mobile-link">Login</a></li>
                 @endguest
-                {{-- End conditional logic for mobile menu --}}
             </ul>
         </div>
-        {{-- End conditional logic for mobile menu --}}
     </nav>
 
     <section class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-24 px-6 text-center mt-[64px]"
@@ -129,11 +123,14 @@
         <div class="grid sm:grid-cols-2 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
             <div class="bg-white rounded-lg shadow hover:shadow-lg transition overflow-hidden" data-aos="zoom-in"
                 data-aos-delay="150">
-                <img src="../public/assets/tshirt-black.png" alt="Kaos Custom Desain" class="w-full h-60 object-cover" />
+                <img src="../public/assets/tshirt-black.png" alt="Kaos Custom Desain"
+                    class="w-full h-60 object-cover" />
                 <div class="p-4">
                     <h3 class="text-lg font-semibold">Kaos Custom Desain</h3>
                     <button class="mt-3 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
-                        <a href="/user/custom-design">Lihat Detail</a>
+                        <a href="{{ route('user.products') }}">
+                            Lihat Detail
+                        </a>
                     </button>
                 </div>
             </div>

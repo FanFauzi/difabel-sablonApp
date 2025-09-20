@@ -1,3 +1,4 @@
+{{-- admin/product/index.blade.php --}}
 @extends('layouts.admin')
 
 @section('title', 'Manajemen Produk Sablon')
@@ -38,6 +39,7 @@
                     <option value="kemeja">Kemeja</option>
                     <option value="jaket">Jaket</option>
                     <option value="topi">Topi</option>
+                    <option value="tas">Tas</option> {{-- Penambahan Kategori --}}
                 </select>
             </div>
         </div>
@@ -50,6 +52,7 @@
                             <th>Gambar</th>
                             <th>Produk</th>
                             <th>Harga</th>
+                            <th>Stok</th> {{-- Penambahan Kolom Stok --}}
                             <th>Biaya Desain</th>
                             <th>Aksi</th>
                         </tr>
@@ -69,6 +72,17 @@
                                     <div><div class="fw-bold">{{ $product->name }}</div><small class="text-muted">{{ Str::limit($product->description, 50) }}</small></div>
                                 </td>
                                 <td><div class="fw-bold text-success">Rp {{ number_format($product->price, 0, ',', '.') }}</div></td>
+                                {{-- Penambahan Data Stok --}}
+                                <td>
+                                    @if($product->stock > 10)
+                                        <span class="badge bg-success">{{ $product->stock }}</span>
+                                    @elseif($product->stock > 0)
+                                        <span class="badge bg-warning text-dark">{{ $product->stock }}</span>
+                                    @else
+                                        <span class="badge bg-danger">Habis</span>
+                                    @endif
+                                </td>
+                                {{-- Akhir Penambahan --}}
                                 <td>
                                     <div class="small">
                                         <div><small>S: Rp {{ number_format($product->small_design_cost, 0, ',', '.') }}</small></div>
@@ -84,7 +98,8 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="8" class="text-center py-4"><i class="fas fa-tshirt fa-3x text-muted mb-3"></i><p class="text-muted mb-0">Tidak ada produk ditemukan.</p><a href="{{ route('admin.products.create') }}" class="btn btn-primary mt-3"><i class="fas fa-plus me-2"></i>Tambah Produk Pertama</a></td></tr>
+                            {{-- Perbaikan Colspan dari 8 menjadi 7 --}}
+                            <tr><td colspan="7" class="text-center py-4"><i class="fas fa-tshirt fa-3x text-muted mb-3"></i><p class="text-muted mb-0">Tidak ada produk ditemukan.</p><a href="{{ route('admin.products.create') }}" class="btn btn-primary mt-3"><i class="fas fa-plus me-2"></i>Tambah Produk Pertama</a></td></tr>
                         @endforelse
                     </tbody>
                 </table>

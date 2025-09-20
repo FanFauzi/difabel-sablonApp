@@ -15,7 +15,7 @@ class CustomProductController extends Controller
      */
     public function index()
     {
-        $customProducts = CustomProduct::all();
+        $customProducts = CustomProduct::latest()->get(); // Mengurutkan dari yang terbaru
         return view('admin.products.index', compact('customProducts'));
     }
 
@@ -42,6 +42,7 @@ class CustomProductController extends Controller
             'category' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:1000',
+            'stock' => 'required|integer|min:0', // Penambahan validasi stok
             'small_design_cost' => 'nullable|numeric|min:0',
             'medium_design_cost' => 'nullable|numeric|min:0',
             'large_design_cost' => 'nullable|numeric|min:0',
@@ -63,6 +64,7 @@ class CustomProductController extends Controller
             'description' => $request->description,
             'category' => $request->category,
             'price' => $request->price,
+            'stock' => $request->stock, // Penambahan data stok
             'small_design_cost' => $request->small_design_cost ?? 0,
             'medium_design_cost' => $request->medium_design_cost ?? 0,
             'large_design_cost' => $request->large_design_cost ?? 0,
@@ -90,6 +92,7 @@ class CustomProductController extends Controller
             'category' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:1000',
+            'stock' => 'required|integer|min:0', // Penambahan validasi stok
             'small_design_cost' => 'nullable|numeric|min:0',
             'medium_design_cost' => 'nullable|numeric|min:0',
             'large_design_cost' => 'nullable|numeric|min:0',
@@ -110,6 +113,7 @@ class CustomProductController extends Controller
             'description' => $request->description,
             'category' => $request->category,
             'price' => $request->price,
+            'stock' => $request->stock, // Penambahan data stok
             'small_design_cost' => $request->small_design_cost ?? 0,
             'medium_design_cost' => $request->medium_design_cost ?? 0,
             'large_design_cost' => $request->large_design_cost ?? 0,
@@ -122,14 +126,14 @@ class CustomProductController extends Controller
     /**
      * Hapus produk kustom dari database.
      */
-public function destroy(CustomProduct $product) 
-{
-    if ($product->image && Storage::disk('public')->exists($product->image)) {
-        Storage::disk('public')->delete($product->image);
+    public function destroy(CustomProduct $product)
+    {
+        if ($product->image && Storage::disk('public')->exists($product->image)) {
+            Storage::disk('public')->delete($product->image);
+        }
+
+        $product->delete();
+
+        return redirect()->route('admin.products.index')->with('success', 'Produk berhasil dihapus!');
     }
-
-    $product->delete();
-
-    return redirect()->route('admin.products.index')->with('success', 'Produk berhasil dihapus!');
-}
 }
