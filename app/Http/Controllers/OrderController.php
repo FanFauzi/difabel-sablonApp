@@ -3,12 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
-use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use GuzzleHttp\Client;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage; // <-- Tambahkan ini
+use Illuminate\Support\Facades\Storage;
 use App\Models\CustomProduct;
 
 class OrderController extends Controller
@@ -81,9 +78,8 @@ class OrderController extends Controller
 
     $product->decrement('stock', $request->quantity);
 
-    $this->sendWhatsAppNotification($order);
-
-    return redirect()->route('user.orders')->with('success', 'Pesanan berhasil dibuat! Kami akan segera memproses pesanan Anda.');
+    return redirect()->route('user.orders.show', $order->id)
+      ->with('success', 'Pesanan Anda berhasil dibuat!');
   }
 
   // Fungsi helper untuk menyimpan gambar desain
@@ -128,48 +124,5 @@ class OrderController extends Controller
     $filename = str_replace([' ', '/', '\\'], '_', $filename);
 
     return response()->download($filePath, $filename);
-  }
-  /**
-   * Kirim notifikasi pesanan ke WhatsApp admin.
-   */
-  private function sendWhatsAppNotification(Order $order)
-  {
-    // Ambil kredensial dari file .env
-    $adminPhoneNumber = env('ADMIN_WHATSAPP');
-    $token = env('FONNTE_TOKEN');
-
-    if (!$adminPhoneNumber || !$token) {
-      Log::error('WhatsApp credentials (ADMIN_WHATSAPP or FONNTE_TOKEN) are not set in .env file.');
-      return;
-    }
-
-    $user = Auth::user();
-    $product = CustomProduct::find($order->product_id);
-
-    $message = "🎉 *PESANAN BARU MASUK!* 🎉\n\n";
-    $message .= "*ID Pesanan*: #{$order->id}\n";
-    $message .= "*Dari*: {$user->name}\n";
-    $message .= "*Produk*: {$product->name}\n";
-    $message .= "*Jumlah*: {$order->quantity} pcs\n";
-    $message .= "*Ukuran*: {$order->size}\n";
-    $message .= "*Warna*: {$order->color}\n";
-    $message .= "*Total*: Rp " . number_format($order->total_price, 0, ',', '.') . "\n\n";
-    $message .= "Silakan cek dashboard admin untuk melihat detail lengkap pesanan.\n";
-    $message .= "Link: " . route('admin.orders.show', $order->id);
-
-    try {
-      $client = new Client();
-      $client->post('https://api.fonnte.com/send', [
-        'headers' => [
-          'Authorization' => $token,
-        ],
-        'form_params' => [
-          'target' => $adminPhoneNumber,
-          'message' => $message,
-        ],
-      ]);
-    } catch (\Exception $e) {
-      Log::error('Gagal mengirim notifikasi WhatsApp: ' . $e->getMessage());
-    }
   }
 }

@@ -58,68 +58,6 @@ class UserController extends Controller
         return view('user.check-status', compact('order', 'recentOrders', 'searchPerformed'));
     }
 
-    // public function createOrder(CustomProduct $product)
-    // {
-    //     if ($product->stock <= 0) {
-    //         return redirect()->route('user.products')->with('error', 'Maaf, produk ini sedang habis.');
-    //     }
-    //     return view('user.design-and-order', compact('product'));
-    // }
-
-    // public function storeOrder(Request $request)
-    // {
-    //     $request->validate([
-    //         'product_id' => 'required|exists:custom_products,id',
-    //         'quantity' => 'required|integer|min:1',
-    //         'design_notes' => 'nullable|string|max:1000',
-    //         'size' => 'required|in:S,M,L,XL,XXL',
-    //         'selected_color' => 'required|string',
-    //         'total_price_input' => 'required|numeric',
-    //     ]);
-
-    //     $product = CustomProduct::findOrFail($request->product_id);
-
-    //     if ($request->quantity > $product->stock) {
-    //         return back()->withInput()->with('error', 'Jumlah pesanan (' . $request->quantity . ') melebihi stok yang tersedia (' . $product->stock . ').');
-    //     }
-
-    //     $designPaths = [];
-    //     $views = ['depan', 'belakang', 'samping'];
-    //     foreach ($views as $view) {
-    //         $inputName = 'design_data_url_' . $view;
-    //         if ($request->filled($inputName)) {
-    //             $dataUrl = $request->input($inputName);
-    //             list($type, $data) = explode(';', $dataUrl);
-    //             list(, $data) = explode(',', $data);
-    //             $imageData = base64_decode($data);
-
-    //             $fileName = 'designs/' . uniqid() . '_' . $view . '.png';
-    //             \Storage::disk('public')->put($fileName, $imageData);
-    //             $designPaths[$inputName] = $fileName;
-    //         }
-    //     }
-
-    //     Order::create([
-    //         'user_id' => Auth::id(),
-    //         'product_id' => $request->product_id,
-    //         'quantity' => $request->quantity,
-    //         'size' => $request->size,
-    //         'color' => $request->selected_color,
-    //         'design_description' => $request->design_notes,
-    //         'notes' => $request->design_notes,
-    //         'total_price' => $request->total_price_input,
-    //         'status' => 'pending',
-    //         'design_file_depan' => $designPaths['design_data_url_depan'] ?? null,
-    //         'design_file_belakang' => $designPaths['design_data_url_belakang'] ?? null,
-    //         'design_file_samping' => $designPaths['design_data_url_samping'] ?? null,
-    //     ]);
-
-    //     // PERBAIKAN: Kurangi stok di sini, HANYA SEKALI setelah pesanan berhasil dibuat
-    //     $product->decrement('stock', $request->quantity);
-
-    //     return redirect()->route('user.orders')->with('success', 'Pesanan berhasil dibuat! Kami akan segera memproses pesanan Anda.');
-    // }
-
     public function showProfile()
     {
         $user = Auth::user();

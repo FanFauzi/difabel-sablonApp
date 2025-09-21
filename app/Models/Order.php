@@ -80,4 +80,27 @@ class Order extends Model
             default => 'bg-secondary text-white',
         };
     }
+
+    public function getWhatsAppUrl(): string
+{
+    $adminPhoneNumber = env('ADMIN_WHATSAPP');
+    if (!$adminPhoneNumber) {
+        return '#'; 
+    }
+    
+    $user = $this->user;
+    $product = $this->product;
+
+    $message = "Halo Admin, saya ingin bertanya mengenai pesanan saya.\n\n";
+    $message .= "*ID Pesanan*: #{$this->id}\n";
+    $message .= "*Nama Pemesan*: {$user->name}\n";
+    $message .= "*Produk*: {$product->name}\n";
+    $message .= "*Jumlah*: {$this->quantity} pcs\n";
+    $message .= "*Total*: Rp " . number_format($this->total_price, 0, ',', '.') . "\n\n";
+    $message .= "Mohon informasinya, terima kasih.";
+
+    $encodedMessage = urlencode($message);
+
+    return "https://api.whatsapp.com/send?phone={$adminPhoneNumber}&text={$encodedMessage}";
+}
 }

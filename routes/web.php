@@ -146,8 +146,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::delete('/orders/{id}', function ($id) {
         $order = \App\Models\Order::findOrFail($id);
         $order->delete();
-        return redirect()->route('orders.index')->with('success', 'Pesanan berhasil dihapus!');
+        return redirect()->route('admin.orders.index')->with('success', 'Pesanan berhasil dihapus!');
     })->name('orders.destroy');
+    Route::get('/orders/{order}/success', [OrderController::class, 'success'])->name('orders.success');
 
     // Profile
     Route::get('/profile', [AuthController::class, 'showProfile'])->name('profile');
@@ -173,46 +174,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 
 
 Route::middleware(['auth', 'role:user'])->group(function () {
-
-    // Home
-    // Route::get('/user/home', function () {
-    //     return view('home');
-    // })->name('home');
-
-    // // Products
-    // Route::get('/products', [UserController::class, 'products'])->name('user.products');
-
-    // // Orders
-    // Route::get('/orders', [UserController::class, 'orders'])->name('user.orders');
-    // Route::get('/orders/{order}', [UserController::class, 'showOrder'])->name('user.orders.show');
-
-    // Route::get('/orders/create/{customProduct}', [OrderController::class, 'createDesign'])->name('orders.create');
-    // Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
-
-    // // Create & Store Order
-    // Route::get('/orders/create/{product}', [UserController::class, 'createOrder'])->name('user.orders.create');
-    // Route::post('/orders', [UserController::class, 'storeOrder'])->name('user.orders.store');
-
-
-    // // User Dashboard
-    // Route::get('/user/dashboard', function () {
-    //     /** @var \App\Models\User $user */
-    //     $user = Auth::user();
-    //     $totalOrders = $user->orders()->count();
-    //     $pendingOrders = $user->orders()->where('status', 'pending')->count();
-    //     $processingOrders = $user->orders()->where('status', 'proses')->count();
-    //     $completedOrders = $user->orders()->where('status', 'selesai')->count();
-    //     $latestOrder = $user->orders()->latest()->first();
-
-    //     return view('user.dashboard', compact('totalOrders', 'pendingOrders', 'processingOrders', 'completedOrders', 'latestOrder'));
-    // })->name('user.dashboard');
-
-    // // Order Status Checking
-    // Route::get('/check-status', [UserController::class, 'checkStatus'])->name('user.check-status');
-
-    // // Profile
-    // Route::get('/profile', [UserController::class, 'showProfile'])->name('user.profile');
-    // Route::put('/profile', [UserController::class, 'updateProfile'])->name('user.profile.update');
 
     Route::get('/user/home', function () {
         return view('home');
