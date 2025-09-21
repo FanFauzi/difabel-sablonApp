@@ -89,7 +89,7 @@
     <section class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-24 px-6 text-center mt-[64px]"
         data-aos="fade-up">
         <h1 class="text-4xl md:text-6xl font-bold mb-4">
-            Selamat Datang di Sablon-Apppppppppp
+            Selamat Datang di Sablon-App
         </h1>
         <p class="text-lg md:text-xl mb-6 max-w-2xl mx-auto">
             Platform terbaik untuk membuat kaos sablon berkualitas tinggi
