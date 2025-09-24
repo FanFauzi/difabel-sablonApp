@@ -77,7 +77,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
             'password' => bcrypt($request->password),
             'role' => $request->role,
         ]);
-        return redirect()->route('users.index')->with('success', 'User berhasil ditambahkan!');
+        return redirect()->route('admin.users.index')->with('success', 'User berhasil ditambahkan!');
     })->name('users.store');
     Route::get('/users/{id}/edit', function ($id) {
         $user = \App\Models\User::findOrFail($id);
@@ -99,7 +99,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         if ($request->filled('password')) {
             $user->update(['password' => bcrypt($request->password)]);
         }
-        return redirect()->route('users.index')->with('success', 'User berhasil diperbarui!');
+        return redirect()->route('admin.users.index')->with('success', 'User berhasil diperbarui!');
     })->name('users.update');
     Route::get('/users/{id}/delete', function ($id) {
         $user = \App\Models\User::findOrFail($id);
@@ -108,10 +108,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::delete('/users/{id}', function ($id) {
         $user = \App\Models\User::findOrFail($id);
         if ($user->id === Auth::id()) {
-            return redirect()->route('users.index')->with('error', 'Tidak dapat menghapus user yang sedang login!');
+            return redirect()->route('admin.users.index')->with('error', 'Tidak dapat menghapus user yang sedang login!');
         }
         $user->delete();
-        return redirect()->route('users.index')->with('success', 'User berhasil dihapus!');
+        return redirect()->route('admin.users.index')->with('success', 'User berhasil dihapus!');
     })->name('users.destroy');
 
     // Order Management

@@ -47,12 +47,12 @@
         </div>
 
         <div class="mt-4">
-            <form action="{{ route('users.destroy', $user->id) }}" method="POST">
+            <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST">
                 @csrf
                 @method('DELETE')
 
                 <div class="d-flex justify-content-end">
-                    <a href="{{ route('users.index') }}" class="btn btn-secondary me-2">
+                    <a href="{{ route('admin.users.index') }}" class="btn btn-secondary me-2">
                         <i class="fas fa-times"></i> Batal
                     </a>
                     <button type="submit" class="btn btn-danger">

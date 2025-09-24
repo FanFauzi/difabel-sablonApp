@@ -208,10 +208,10 @@
             };
             const sizePrices = {
                 'S': 0,
-                'M': 5000,
-                'L': 10000,
-                'XL': 15000,
-                'XXL': 20000
+                'M': 0,
+                'L': 0,
+                'XL': 10000,
+                'XXL': 10000
             };
 
             const designCosts = {
@@ -319,8 +319,8 @@
                     allDesigns.forEach(obj => {
                         const imgArea = (obj.width || 0) * (obj.height || 0) * (obj.scaleX || 1) * (obj
                             .scaleY || 1);
-                        if (imgArea < 100000) maxDesignCost = Math.max(maxDesignCost, designCosts.small);
-                        else if (imgArea < 300000) maxDesignCost = Math.max(maxDesignCost, designCosts
+                        if (imgArea < 1000) maxDesignCost = Math.max(maxDesignCost, designCosts.small);
+                        else if (imgArea < 3000) maxDesignCost = Math.max(maxDesignCost, designCosts
                             .medium);
                         else maxDesignCost = Math.max(maxDesignCost, designCosts.large);
                     });
@@ -368,7 +368,7 @@
 
                 const fileInput = document.getElementById("uploadImage");
                 if (fileInput) {
-                    fileInput.value = ""; // kosongin input file
+                    fileInput.value = ""; 
                 }
             }
 
