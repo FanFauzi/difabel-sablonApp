@@ -43,13 +43,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         return view('home');
     })->name('admin.home');
 
-    // Rute untuk manajemen produk standar
+    // Rute untuk manajemen produk kustom
     Route::resource('products', CustomProductController::class);
 
-    Route::get('/products/{id}/delete', function ($id) {
-        $product = \App\Models\CustomProduct::findOrFail($id);
-        return view('admin.products.delete', compact('product'));
-    })->name('products.delete');
+    Route::get('/products/{id}/delete', [CustomProductController::class, 'delete'])->name('products.delete');
 
     // Dashboard
     Route::get('/dashboard', function () {
@@ -61,9 +58,11 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         $users = \App\Models\User::all();
         return view('admin.users.index', compact('users'));
     })->name('users.index');
+
     Route::get('/users/create', function () {
         return view('admin.users.create');
     })->name('users.create');
+    
     Route::post('/users', function (Illuminate\Http\Request $request) {
         $request->validate([
             'name' => 'required|string|max:255',
@@ -179,7 +178,7 @@ Route::middleware(['auth', 'role:user'])->group(function () {
         return view('home');
     })->name('user.home');
 
-    // Rute sederhana seperti dashboard bisa tetap di sini
+    // Rute dashboard 
     Route::get('user/dashboard', function () {
         $user = Auth::user();
         $summary = [

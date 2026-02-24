@@ -15,7 +15,7 @@ class CustomProductController extends Controller
      */
     public function index()
     {
-        $customProducts = CustomProduct::latest()->get(); // Mengurutkan dari yang terbaru
+        $customProducts = CustomProduct::latest()->get();
         return view('admin.products.index', compact('customProducts'));
     }
 
@@ -27,10 +27,10 @@ class CustomProductController extends Controller
         return view('admin.products.create');
     }
 
-        public function show(CustomProduct $product)
-    {
-        return view('admin.products.show', compact('product'));
-    }
+    // public function show(CustomProduct $product)
+    // {
+    //     return view('admin.products.show', compact('product'));
+    // }
 
     /**
      * Simpan produk kustom baru ke database.
@@ -126,6 +126,14 @@ class CustomProductController extends Controller
     /**
      * Hapus produk kustom dari database.
      */
+
+    public function delete($id)
+    {
+        $product = CustomProduct::findOrFail($id);
+        return view('admin.products.delete', compact('product'));
+    }
+
+
     public function destroy(CustomProduct $product)
     {
         if ($product->image && Storage::disk('public')->exists($product->image)) {

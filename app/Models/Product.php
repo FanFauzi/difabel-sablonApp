@@ -9,6 +9,8 @@ class Product extends Model
 {
     use HasFactory;
 
+    protected $table = 'products';
+
     /**
      * The attributes that are mass assignable.
      *
@@ -16,14 +18,12 @@ class Product extends Model
      */
     protected $fillable = [
         'name',
-        'slug',
         'description',
         'category',
+        'stock',
         'price',
-        'small_design_cost', 
-        'medium_design_cost',
-        'large_design_cost', 
         'image',
+        'linkProduct'
     ];
 
     /**
@@ -31,8 +31,4 @@ class Product extends Model
      *
      * @return string
      */
-    // public function getRouteKeyName()
-    // {
-    //     return 'slug';
-    // }
 }

@@ -25,8 +25,10 @@
             background: var(--sidebar-bg) !important;
             box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
             border-right: none;
-            position: fixed; /* Penting untuk sidebar mobile */
-            z-index: 1030;   /* Pastikan di atas konten lain */
+            position: fixed;
+            /* Penting untuk sidebar mobile */
+            z-index: 1030;
+            /* Pastikan di atas konten lain */
             width: var(--sidebar-width);
             height: 100vh;
             left: 0;
@@ -49,7 +51,8 @@
             animation: fadeInDown 0.6s ease-out;
         }
 
-        .sidebar-header h6 { /* Ganti h5 ke h6 sesuai kode Anda */
+        .sidebar-header h6 {
+            /* Ganti h5 ke h6 sesuai kode Anda */
             font-weight: 700 !important;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
@@ -209,7 +212,8 @@
         .sidebar-footer {
             background: rgba(255, 255, 255, 0.05);
             border-top: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 10px 0; /* Padding agar tidak terlalu mepet */
+            padding: 10px 0;
+            /* Padding agar tidak terlalu mepet */
         }
 
         /* Main Content Adjustment */
@@ -226,8 +230,10 @@
             background: #fff;
             border-bottom: 1px solid #e9ecef;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-            padding: 1rem 1.5rem; /* Disesuaikan agar lebih pas */
-            position: sticky; /* Membuat header tetap di atas */
+            padding: 1rem 1.5rem;
+            /* Disesuaikan agar lebih pas */
+            position: sticky;
+            /* Membuat header tetap di atas */
             top: 0;
             z-index: 1020;
         }
@@ -237,7 +243,7 @@
             font-weight: 600;
             margin: 0;
         }
-        
+
         /* Custom Scrollbar */
         .sidebar::-webkit-scrollbar {
             width: 6px;
@@ -262,6 +268,7 @@
                 opacity: 0;
                 transform: translateY(-20px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -274,14 +281,37 @@
         }
 
         /* Perbaiki delay agar tidak terlalu banyak */
-        .nav-section:nth-child(1) .nav-link { animation-delay: 0.05s; }
-        .nav-section:nth-child(2) .nav-link:nth-child(1) { animation-delay: 0.1s; }
-        .nav-section:nth-child(2) .nav-link:nth-child(2) { animation-delay: 0.15s; }
-        .nav-section:nth-child(2) .nav-link:nth-child(3) { animation-delay: 0.2s; }
-        .nav-section:nth-child(3) .nav-link:nth-child(1) { animation-delay: 0.25s; }
-        .nav-section:nth-child(3) .nav-link:nth-child(2) { animation-delay: 0.3s; }
-        .nav-section:nth-child(4) .nav-link:nth-child(1) { animation-delay: 0.35s; }
-        .nav-section:nth-child(4) .nav-link:nth-child(2) { animation-delay: 0.4s; }
+        .nav-section:nth-child(1) .nav-link {
+            animation-delay: 0.05s;
+        }
+
+        .nav-section:nth-child(2) .nav-link:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .nav-section:nth-child(2) .nav-link:nth-child(2) {
+            animation-delay: 0.15s;
+        }
+
+        .nav-section:nth-child(2) .nav-link:nth-child(3) {
+            animation-delay: 0.2s;
+        }
+
+        .nav-section:nth-child(3) .nav-link:nth-child(1) {
+            animation-delay: 0.25s;
+        }
+
+        .nav-section:nth-child(3) .nav-link:nth-child(2) {
+            animation-delay: 0.3s;
+        }
+
+        .nav-section:nth-child(4) .nav-link:nth-child(1) {
+            animation-delay: 0.35s;
+        }
+
+        .nav-section:nth-child(4) .nav-link:nth-child(2) {
+            animation-delay: 0.4s;
+        }
 
 
         @keyframes slideInLeft {
@@ -289,6 +319,7 @@
                 opacity: 0;
                 transform: translateX(-30px);
             }
+
             to {
                 opacity: 1;
                 transform: translateX(0);
@@ -301,9 +332,22 @@
         }
 
         @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-            40% { transform: translateY(-3px); }
-            60% { transform: translateY(-2px); }
+
+            0%,
+            20%,
+            50%,
+            80%,
+            100% {
+                transform: translateY(0);
+            }
+
+            40% {
+                transform: translateY(-3px);
+            }
+
+            60% {
+                transform: translateY(-2px);
+            }
         }
 
         /* Active State Enhancements */
@@ -312,7 +356,8 @@
         }
 
         /* Gradient Text Effects */
-        .brand-logo h6 { /* Pastikan ini h6 */
+        .brand-logo h6 {
+            /* Pastikan ini h6 */
             background: linear-gradient(45deg, #fff, #f0f0f0);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -333,55 +378,77 @@
 
             .sidebar.show {
                 transform: translateX(0);
-                box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5); /* Efek bayangan lebih jelas */
+                box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+                /* Efek bayangan lebih jelas */
             }
 
             /* Hapus display: none untuk .nav-text */
             .nav-text {
-                display: block; /* Ubah ke block agar selalu terlihat */
-                text-align: left; /* Teks rata kiri */
-                white-space: nowrap; /* Pastikan teks tidak patah */
-                overflow: hidden;    /* Sembunyikan jika terlalu panjang */
-                text-overflow: ellipsis; /* Tambahkan ellipsis jika tersembunyi */
-                margin-left: 10px; /* Jarak antara ikon dan teks */
-                font-size: 0.75rem; /* Sedikit lebih kecil agar muat */
+                display: block;
+                /* Ubah ke block agar selalu terlihat */
+                text-align: left;
+                /* Teks rata kiri */
+                white-space: nowrap;
+                /* Pastikan teks tidak patah */
+                overflow: hidden;
+                /* Sembunyikan jika terlalu panjang */
+                text-overflow: ellipsis;
+                /* Tambahkan ellipsis jika tersembunyi */
+                margin-left: 10px;
+                /* Jarak antara ikon dan teks */
+                font-size: 0.75rem;
+                /* Sedikit lebih kecil agar muat */
             }
 
             .nav-link {
-                justify-content: flex-start; /* Rata kiri */
-                padding: 10px 10px !important; /* Padding disesuaikan */
+                justify-content: flex-start;
+                /* Rata kiri */
+                padding: 10px 10px !important;
+                /* Padding disesuaikan */
             }
 
             .nav-icon {
-                width: 24px; /* Ikon sedikit lebih kecil */
+                width: 24px;
+                /* Ikon sedikit lebih kecil */
                 height: 24px;
-                font-size: 0.8rem; /* Ukuran ikon */
-                margin-right: 8px; /* Jarak antara ikon dan teks */
+                font-size: 0.8rem;
+                /* Ukuran ikon */
+                margin-right: 8px;
+                /* Jarak antara ikon dan teks */
             }
 
             /* Perbaiki posisi badge agar tidak tumpang tindih */
             .nav-badge {
-                position: static; /* Kembali ke posisi normal di dalam flexbox */
-                margin-left: auto; /* Dorong ke kanan */
-                order: 2; /* Pastikan badge muncul setelah teks jika flex-direction adalah row */
+                position: static;
+                /* Kembali ke posisi normal di dalam flexbox */
+                margin-left: auto;
+                /* Dorong ke kanan */
+                order: 2;
+                /* Pastikan badge muncul setelah teks jika flex-direction adalah row */
             }
 
             /* Nav section title juga dibuat lebih baik */
             .nav-section-title {
                 padding: 6px 8px;
                 font-size: 0.65rem;
-                border-left: none; /* Hapus border kiri */
-                text-align: center; /* Rata tengah */
+                border-left: none;
+                /* Hapus border kiri */
+                text-align: center;
+                /* Rata tengah */
             }
 
             /* Sembunyikan brand-logo dan kecilkan header di mobile */
             .sidebar-header .brand-logo {
-                display: none; /* Sembunyikan logo di mobile untuk menghemat ruang */
+                display: none;
+                /* Sembunyikan logo di mobile untuk menghemat ruang */
             }
+
             .sidebar-header h6 {
-                font-size: 0.9rem; /* Ukuran font judul di header sidebar mobile */
+                font-size: 0.9rem;
+                /* Ukuran font judul di header sidebar mobile */
                 margin-bottom: 5px !important;
             }
+
             .sidebar-header small {
                 font-size: 0.6rem !important;
             }
@@ -398,7 +465,7 @@
 <body>
     <div class="d-flex">
         <nav class="sidebar bg-dark text-white" id="sidebar">
-             <div class="sidebar-content p-0">
+            <div class="sidebar-content p-0">
                 <div class="sidebar-header bg-gradient-primary text-center py-3 px-2">
                     <div class="brand-logo mb-1">
                         <i class="fas fa-crown fa-lg text-white mb-1"></i>
@@ -409,50 +476,71 @@
                 </div>
                 <div class="sidebar-nav px-2 py-1">
                     <div class="nav-section mb-2">
-                        <a class="nav-link main-nav {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}" href="{{ route('admin.dashboard') }}">
-                            <div class="nav-icon"><i class="fas fa-tachometer-alt"></i></div><span class="nav-text">Dashboard</span>
+                        <a class="nav-link main-nav {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}"
+                            href="{{ route('admin.dashboard') }}">
+                            <div class="nav-icon"><i class="fas fa-tachometer-alt"></i></div><span
+                                class="nav-text">Dashboard</span>
                         </a>
                     </div>
                     <div class="nav-section mb-2">
                         <div class="nav-section-title"><i class="fas fa-cogs me-1"></i><span>MANAJEMEN</span></div>
-                        <a class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}">
-                            <div class="nav-icon"><i class="fas fa-users"></i></div><span class="nav-text">Manajemen User</span>
-                            <div class="nav-badge"><span class="badge bg-primary" style="font-size: 0.6rem; padding: 2px 6px;">{{ \App\Models\User::count() }}</span></div>
+                        <a class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}"
+                            href="{{ route('admin.users.index') }}">
+                            <div class="nav-icon"><i class="fas fa-users"></i></div><span class="nav-text">Manajemen
+                                User</span>
+                            <div class="nav-badge"><span class="badge bg-primary"
+                                    style="font-size: 0.6rem; padding: 2px 6px;">{{ \App\Models\User::count() }}</span>
+                            </div>
                         </a>
-                        <a class="nav-link {{ request()->routeIs('products.*') ? 'active' : '' }}" href="{{ route('admin.products.index') }}">
-                            <div class="nav-icon"><i class="fas fa-box-open"></i></div><span class="nav-text">Manajemen Produk</span>
-                            <div class="nav-badge"><span class="badge bg-success" style="font-size: 0.6rem; padding: 2px 6px;">{{ \App\Models\Product::count() }}</span></div>
+                        <a class="nav-link {{ request()->routeIs('products.*') ? 'active' : '' }}"
+                            href="{{ route('admin.products.index') }}">
+                            <div class="nav-icon"><i class="fas fa-box-open"></i></div><span class="nav-text">Manajemen
+                                Produk</span>
+                            <div class="nav-badge"><span class="badge bg-success"
+                                    style="font-size: 0.6rem; padding: 2px 6px;">{{ \App\Models\Product::count() }}</span>
+                            </div>
                         </a>
-                        <a class="nav-link {{ request()->routeIs('orders.*') ? 'active' : '' }}" href="{{ route('admin.orders.index') }}">
-                            <div class="nav-icon"><i class="fas fa-shopping-cart"></i></div><span class="nav-text">Manajemen Pesanan</span>
-                            <div class="nav-badge"><span class="badge bg-warning" style="font-size: 0.6rem; padding: 2px 6px;">{{ \App\Models\Order::count() }}</span></div>
+                        <a class="nav-link {{ request()->routeIs('orders.*') ? 'active' : '' }}"
+                            href="{{ route('admin.orders.index') }}">
+                            <div class="nav-icon"><i class="fas fa-shopping-cart"></i></div><span
+                                class="nav-text">Manajemen Pesanan</span>
+                            <div class="nav-badge"><span class="badge bg-warning"
+                                    style="font-size: 0.6rem; padding: 2px 6px;">{{ \App\Models\Order::count() }}</span>
+                            </div>
                         </a>
                     </div>
                     <div class="nav-section mb-2">
                         <div class="nav-section-title"><i class="fas fa-chart-bar me-1"></i><span>LAPORAN</span></div>
-                        <a class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}" href="{{ route('admin.reports.financial') }}">
-                            <div class="nav-icon"><i class="fas fa-chart-line"></i></div><span class="nav-text">Laporan Keuangan</span>
+                        <a class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}"
+                            href="{{ route('admin.reports.financial') }}">
+                            <div class="nav-icon"><i class="fas fa-chart-line"></i></div><span class="nav-text">Laporan
+                                Keuangan</span>
                         </a>
-                        <a class="nav-link {{ request()->routeIs('activity-logs.*') ? 'active' : '' }}" href="{{ route('admin.activity-logs.index') }}">
-                            <div class="nav-icon"><i class="fas fa-history"></i></div><span class="nav-text">Log Aktivitas</span>
+                        <a class="nav-link {{ request()->routeIs('activity-logs.*') ? 'active' : '' }}"
+                            href="{{ route('admin.activity-logs.index') }}">
+                            <div class="nav-icon"><i class="fas fa-history"></i></div><span class="nav-text">Log
+                                Aktivitas</span>
                         </a>
                     </div>
                     <div class="nav-section">
                         <div class="nav-section-title"><i class="fas fa-user-circle me-1"></i><span>AKUN</span></div>
-                        <a class="nav-link {{ request()->routeIs('admin.profile') ? 'active' : '' }}" href="{{ route('admin.profile') }}">
+                        <a class="nav-link {{ request()->routeIs('admin.profile') ? 'active' : '' }}"
+                            href="{{ route('admin.profile') }}">
                             <div class="nav-icon"><i class="fas fa-user"></i></div><span class="nav-text">Profil</span>
                         </a>
                         <hr class="my-2 border-secondary">
                         <form action="{{ route('logout') }}" method="POST" class="d-inline w-100">
                             @csrf
                             <button type="submit" class="nav-link logout-nav w-100 text-start border-0 bg-transparent">
-                                <div class="nav-icon"><i class="fas fa-sign-out-alt"></i></div><span class="nav-text">Logout</span>
+                                <div class="nav-icon"><i class="fas fa-sign-out-alt"></i></div><span
+                                    class="nav-text">Logout</span>
                             </button>
                         </form>
                     </div>
                 </div>
                 <div class="sidebar-footer text-center py-2 px-2 border-top border-secondary mt-auto">
-                    <small class="text-muted" style="font-size: 0.7rem;"><i class="fas fa-clock me-1"></i>{{ now()->format('H:i') }}</small>
+                    <small class="text-muted" style="font-size: 0.7rem;"><i
+                            class="fas fa-clock me-1"></i>{{ now()->format('H:i') }}</small>
                 </div>
             </div>
         </nav>
@@ -472,17 +560,17 @@
 
             <main class="p-4">
                 @if (session('success'))
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    {{ session('success') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        {{ session('success') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
                 @endif
 
                 @if (session('error'))
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    {{ session('error') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        {{ session('error') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
                 @endif
 
                 @yield('content')
@@ -496,7 +584,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             const sidebar = document.getElementById('sidebar');
             const toggler = document.getElementById('sidebar-toggler');
-            
+
             if (toggler) {
                 toggler.addEventListener('click', function() {
                     sidebar.classList.toggle('show');
@@ -513,6 +601,8 @@
             });
         });
     </script>
+
+    @stack('scripts')
 </body>
 
 </html>

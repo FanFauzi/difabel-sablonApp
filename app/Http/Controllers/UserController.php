@@ -13,6 +13,17 @@ use App\Models\User;
 class UserController extends Controller
 {
 
+    public function index()
+    {
+        $users = User::all();
+        return view('user.index', compact('users'));
+    }
+
+    public function create()
+    {
+        return view('admin.users.create');
+    }
+
     public function products()
     {
         $products = CustomProduct::all();

@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
@@ -15,8 +14,8 @@ class ProductController extends Controller
      */
     public function index()
     {
-        $products = Product::all();
-        return view('admin.products.index', compact('products'));
+        $products = Product::latest()->get();
+        return view('admin.finishedProducts.index', compact('products'));
     }
 
     /**
@@ -24,8 +23,7 @@ class ProductController extends Controller
      */
     public function create()
     {
-        // return view('admin.products.create');
-        return view('admin.products.create-custom');
+        return view('admin.finishedProducts.create');
     }
 
     /**
@@ -39,35 +37,26 @@ class ProductController extends Controller
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:1000',
             'stock' => 'required|integer|min:0',
-            'small_design_cost' => 'nullable|numeric|min:0',
-            'medium_design_cost' => 'nullable|numeric|min:0',
-            'large_design_cost' => 'nullable|numeric|min:0',
             'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'linkProduct' => 'nullable|string',
         ]);
 
         $imagePath = null;
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('products', 'public');
-        }
-
-        $slug = Str::slug($request->name);
-        $originalSlug = $slug;
-        $count = 1;
-        while (Product::where('slug', $slug)->exists()) {
-            $slug = $originalSlug . '-' . $count++;
+            $imagePath = $request->file('image')->store('finishedProducts', 'public');
         }
 
         Product::create([
             'name' => $request->name,
-            'slug' => $slug,
             'description' => $request->description,
             'category' => $request->category,
             'price' => $request->price,
             'stock' => $request->stock,
             'image' => $imagePath,
+            'linkProduct' => $request->linkProduct
         ]);
 
-        return redirect()->route('admin.products.index')->with('success', 'Produk berhasil ditambahkan!');
+        return redirect()->route('admin.finishedProducts.index')->with('success', 'Produk berhasil ditambahkan!');
     }
 
     /**
@@ -75,7 +64,7 @@ class ProductController extends Controller
      */
     public function show(Product $product)
     {
-        return view('admin.products.show', compact('product'));
+        return view('admin.finishedProducts.show', compact('product'));
     }
 
     /**
@@ -83,7 +72,7 @@ class ProductController extends Controller
      */
     public function edit(Product $product)
     {
-        return view('admin.products.edit', compact('product'));
+        return view('admin.finishedProducts.edit', compact('product'));
     }
 
     /**
@@ -98,6 +87,7 @@ class ProductController extends Controller
             'price' => 'required|numeric|min:1000',
             'stock' => 'required|integer|min:0',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'linkProduct' => 'nullable|string',
         ]);
 
         $imagePath = $product->image;
@@ -105,33 +95,34 @@ class ProductController extends Controller
             if ($product->image && Storage::disk('public')->exists($product->image)) {
                 Storage::disk('public')->delete($product->image);
             }
-            $imagePath = $request->file('image')->store('products', 'public');
+            $imagePath = $request->file('image')->store('finishedProducts', 'public');
         }
 
         $product->update([
             'name' => $request->name,
-            'slug' => Str::slug($request->name),
             'description' => $request->description,
             'category' => $request->category,
             'price' => $request->price,
             'stock' => $request->stock,
             'image' => $imagePath,
+            'linkProduct' => $request->linkProduct
         ]);
 
-        return redirect()->route('admin.products.index')->with('success', 'Produk berhasil diperbarui!');
+        return redirect()->route('admin.finishedProducts.index')->with('success', 'Produk berhasil diperbarui!');
     }
 
     /**
      * Hapus produk dari database.
      */
+
     public function destroy(Product $product)
     {
         if ($product->image && Storage::disk('public')->exists($product->image)) {
-            Storage::disk('public')->delete($product->image);
+            Storage::disk('public/finishedProducts')->delete($product->image);
         }
 
         $product->delete();
-        
-        return redirect()->route('admin.products.index')->with('success', 'Produk berhasil dihapus!');
+
+        return redirect()->route('admin.finishedProducts.index')->with('success', 'Produk berhasil dihapus!');
     }
 }
