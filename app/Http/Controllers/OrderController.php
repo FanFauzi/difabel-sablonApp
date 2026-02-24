@@ -19,15 +19,6 @@ class OrderController extends Controller
     return view('user.design-and-order', ['product' => $customProduct]);
   }
 
-  // Menyimpan pesanan baru
-  public function createOrder(CustomProduct $product)
-  {
-    if ($product->stock <= 0) {
-      return redirect()->route('user.products')->with('error', 'Maaf, produk ini sedang habis.');
-    }
-    return view('user.design-and-order', compact('product'));
-  }
-
   public function store(Request $request)
   {
     $request->validate([
@@ -45,20 +36,13 @@ class OrderController extends Controller
       return back()->withInput()->with('error', 'Jumlah pesanan (' . $request->quantity . ') melebihi stok yang tersedia (' . $product->stock . ').');
     }
 
+    // ✅ Optimasi: Looping menggunakan helper (Kode jadi sangat pendek)
     $designPaths = [];
     $views = ['depan', 'belakang', 'samping'];
+
     foreach ($views as $view) {
       $inputName = 'design_data_url_' . $view;
-      if ($request->filled($inputName)) {
-        $dataUrl = $request->input($inputName);
-        list($type, $data) = explode(';', $dataUrl);
-        list(, $data) = explode(',', $data);
-        $imageData = base64_decode($data);
-
-        $fileName = 'designs/' . uniqid() . '_' . $view . '.png';
-        \Storage::disk('public')->put($fileName, $imageData);
-        $designPaths[$inputName] = $fileName;
-      }
+      $designPaths[$inputName] = $this->saveDesignImage($request, $inputName, $view);
     }
 
     $order = Order::create([
@@ -82,8 +66,8 @@ class OrderController extends Controller
       ->with('success', 'Pesanan Anda berhasil dibuat!');
   }
 
-  // Fungsi helper untuk menyimpan gambar desain
-  private function saveDesignImage(Request $request, string $inputName): ?string
+  // ✅ Optimasi: Helper dirapikan agar parameter string lebih akurat
+  private function saveDesignImage(Request $request, string $inputName, string $viewName): ?string
   {
     if (!$request->filled($inputName)) {
       return null;
@@ -95,7 +79,7 @@ class OrderController extends Controller
 
     if ($data) {
       $imageData = base64_decode($data);
-      $fileName = 'designs/' . uniqid() . '_' . str_replace('design_file_', '', $inputName) . '.png';
+      $fileName = 'designs/' . uniqid() . '_' . $viewName . '.png';
       Storage::disk('public')->put($fileName, $imageData);
       return $fileName;
     }

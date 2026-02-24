@@ -123,4 +123,5 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'admin_whatsapp' => env('ADMIN_WHATSAPP', '6281234567890'),
 ];

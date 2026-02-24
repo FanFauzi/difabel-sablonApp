@@ -105,4 +105,19 @@ class UserController extends Controller
 
         return back()->with('success', 'Profil berhasil diperbarui!');
     }
+
+    public function dashboard()
+    {
+        $user = \Illuminate\Support\Facades\Auth::user();
+        
+        $summary = [
+            'totalOrders' => $user->orders()->count(),
+            'pendingOrders' => $user->orders()->where('status', 'pending')->count(),
+            'processingOrders' => $user->orders()->where('status', 'proses')->count(),
+            'completedOrders' => $user->orders()->where('status', 'selesai')->count(),
+            'latestOrder' => $user->orders()->latest()->first(),
+        ];
+        
+        return view('user.dashboard', $summary);
+    }
 }
