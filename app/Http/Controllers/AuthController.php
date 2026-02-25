@@ -25,7 +25,7 @@ class AuthController extends Controller
                 return redirect()->intended('/admin/dashboard');
             }
             // return redirect()->intended('/user/dashboard');
-            return view('/home');
+            return redirect('/user/dashboard');
         }
 
         return back()->withErrors(['email' => 'Invalid credentials']);
