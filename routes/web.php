@@ -1,19 +1,29 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
+
+// ================= GLOBAL CONTROLLERS =================
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\OrderController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\ActivityLogsController;
-use App\Http\Controllers\FinancialReportController;
+
+// ================= ADMIN CONTROLLERS =================
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\CustomProductController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\OrderManageController;
-use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\ActivityLogsController;
+use App\Http\Controllers\Admin\FinancialReportController;
 
-// Halaman Utama
+// ================= USER CONTROLLERS =================
+use App\Http\Controllers\User\DashboardController as UserDashboardController;
+use App\Http\Controllers\User\OrderController as UserOrderController;
+use App\Http\Controllers\User\ProfileController as UserProfileController;
+// Asumsi UserController lama yang ngurusin view produk & histori pesanan user dipecah ke User\ProductController dll, 
+// tapi kalau lu masih gabung di UserController, pastikan letaknya di folder User/UserController.php
+use App\Http\Controllers\User\UserController as ClientController; 
+
+
+// ================= PUBLIC ROUTES =================
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // Authentication Routes
@@ -23,6 +33,7 @@ Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('regi
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/force-logout', [AuthController::class, 'forceLogout'])->name('force.logout');
+
 
 // ================= ADMIN ROUTES =================
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -42,11 +53,11 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::resource('orders', OrderManageController::class)->except(['create', 'store']);
     Route::get('/orders/{id}/delete', [OrderManageController::class, 'delete'])->name('orders.delete');
     
-    // Order Controller (bawaan)
-    Route::get('/orders/{order}/success', [OrderController::class, 'success'])->name('orders.success');
-    Route::get('/orders/{order}/download-design', [OrderController::class, 'downloadDesign'])->name('orders.download-design');
+    // Order Actions (Admin side)
+    Route::get('/orders/{order}/success', [OrderManageController::class, 'success'])->name('orders.success');
+    Route::get('/orders/{order}/download-design', [OrderManageController::class, 'downloadDesign'])->name('orders.download-design');
 
-    // Profile
+    // Profile Admin (Jika nantinya dipisah, kalau belum arahkan ke AuthController seperti semula)
     Route::get('/profile', [AuthController::class, 'showProfile'])->name('profile');
     Route::put('/profile', [AuthController::class, 'updateProfile'])->name('profile.update');
 
@@ -69,19 +80,19 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 Route::middleware(['auth', 'role:user'])->group(function () {
 
     Route::get('/user/home', [HomeController::class, 'userHome'])->name('user.home');
-    Route::get('/user/dashboard', [UserController::class, 'dashboard'])->name('user.dashboard'); // Berubah dari 'dashboard' menjadi 'user.dashboard'
+    Route::get('/user/dashboard', [UserDashboardController::class, 'dashboard'])->name('user.dashboard'); 
 
     // -- Produk --
-    Route::get('/products', [UserController::class, 'products'])->name('user.products');
+    Route::get('/products', [ClientController::class, 'products'])->name('user.products');
 
     // -- Pesanan (Orders) --
-    Route::get('/orders', [UserController::class, 'orders'])->name('user.orders');
-    Route::get('/orders/create/{customProduct}', [OrderController::class, 'createDesign'])->name('user.orders.create');
-    Route::post('/orders', [OrderController::class, 'store'])->name('user.orders.store');
-    Route::get('/orders/{order}', [UserController::class, 'showOrder'])->name('user.orders.show');
+    Route::get('/orders', [ClientController::class, 'orders'])->name('user.orders');
+    Route::get('/orders/create/{customProduct}', [UserOrderController::class, 'createDesign'])->name('user.orders.create');
+    Route::post('/orders', [UserOrderController::class, 'store'])->name('user.orders.store');
+    Route::get('/orders/{order}', [ClientController::class, 'showOrder'])->name('user.orders.show');
 
     // -- Lainnya --
-    Route::get('/check-status', [UserController::class, 'checkStatus'])->name('user.check-status');
-    Route::get('/profile', [UserController::class, 'showProfile'])->name('user.profile');
-    Route::put('/profile', [UserController::class, 'updateProfile'])->name('user.profile.update');
+    Route::get('/check-status', [ClientController::class, 'checkStatus'])->name('user.check-status');
+    Route::get('/profile', [UserProfileController::class, 'showProfile'])->name('user.profile');
+    Route::put('/profile', [UserProfileController::class, 'updateProfile'])->name('user.profile.update');
 });
