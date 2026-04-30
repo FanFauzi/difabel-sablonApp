@@ -1,6 +1,7 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\User;
+use App\Http\Controllers\Controller;
 
 use App\Models\Order;
 use Illuminate\Http\Request;
@@ -31,6 +32,10 @@ class OrderController extends Controller
     ]);
 
     $product = CustomProduct::findOrFail($request->product_id);
+
+    if ($request->quantity > $product->stock) {
+      return back()->withInput()->with('error', 'Stok tidak mencukupi.');
+    }
 
     if ($request->quantity > $product->stock) {
       return back()->withInput()->with('error', 'Jumlah pesanan (' . $request->quantity . ') melebihi stok yang tersedia (' . $product->stock . ').');
