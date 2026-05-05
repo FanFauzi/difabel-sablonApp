@@ -196,38 +196,20 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
 
+            // ==========================================
+            // 1. DATA DARI DATABASE & CONFIG
+            // ==========================================
             const productPrice = {{ $product->price ?? 0 }};
             const maxStock = {{ $product->stock ?? 0 }};
 
-            let canvas;
-            let baseTshirtImage;
-            let currentColor = 'putih';
-            let currentView = 'depan';
-
-            const loadedTshirtImages = {
-                'depan': {},
-                'belakang': {},
-                'samping': {}
-            };
-
-            // Objek untuk menyimpan state kanvas dalam format JSON
-            const designStates = {
-                'depan': null,
-                'belakang': null,
-                'samping': null
-            };
-
-            const colorOptions = {
-                'putih': '#FFFFFF',
-                'hitam': '#000000',
-                'merah': '#E53E3E',
-                'biru': '#3182CE',
-                'hijau': '#38A169',
+            // Biaya Desain sesuai input Admin (A5, A4, A3)
+            const designCosts = {
+                'small': {{ $product->small_design_cost ?? 0 }}, // A5
+                'medium': {{ $product->medium_design_cost ?? 0 }}, // A4
+                'large': {{ $product->large_design_cost ?? 0 }} // A3
             };
 
             const sizePrices = {
@@ -235,354 +217,261 @@
                 'M': 0,
                 'L': 0,
                 'XL': 10000,
-                'XXL': 10000
+                'XXL': 15000
             };
 
-            const designCosts = {
-                'small': 20000,
-                'medium': 35000,
-                'large': 50000
+            let canvas;
+            let baseTshirtImage;
+            let currentColor = 'putih';
+            let currentView = 'depan';
+            let isSwitchingView = false; // FLAG PENTING: Mencegah Bug Lompatan Harga
+
+            // Kita simpan array objek desain saja, bukan seluruh kanvas
+            const designStates = {
+                'depan': [],
+                'belakang': [],
+                'samping': []
+            };
+            const loadedTshirtImages = {
+                'depan': {},
+                'belakang': {},
+                'samping': {}
+            };
+            const colorOptions = {
+                'putih': '#FFFFFF',
+                'hitam': '#000000',
+                'merah': '#E53E3E',
+                'biru': '#3182CE',
+                'hijau': '#38A169'
             };
 
-            // Fungsi untuk memperbarui gambar kaos dasar dan desain yang sesuai
-            function updateCanvasForView(color, view) {
-                canvas.clear();
-
-                if (loadedTshirtImages[view][color]) {
-                    baseTshirtImage = loadedTshirtImages[view][color];
-                    canvas.add(baseTshirtImage);
-                    canvas.sendToBack(baseTshirtImage);
-                    if (designStates[view]) {
-                        canvas.loadFromJSON(designStates[view], () => {
-                            canvas.renderAll();
-                        });
-                    }
-                    canvas.renderAll();
-                } else {
-                    const imageUrl = `{{ asset('kaos') }}/kaos-${color}-${view}.png`;
-                    fabric.Image.fromURL(imageUrl, function(img) {
-                        img.set({
-                            left: canvas.width / 2,
-                            top: canvas.height / 2,
-                            originX: 'center',
-                            originY: 'center',
-                            selectable: false,
-                            evented: false,
-                        });
-                        img.scaleToWidth(canvas.width * 0.9);
-                        baseTshirtImage = img;
-                        loadedTshirtImages[view][color] = img;
-                        canvas.add(baseTshirtImage);
-                        canvas.sendToBack(baseTshirtImage);
-
-                        if (designStates[view]) {
-                            canvas.loadFromJSON(designStates[view], () => {
-                                canvas.renderAll();
-                            });
-                        }
-                        canvas.renderAll();
-                    });
-                }
-            }
-
-            // Fungsi untuk mengelola designImage saat beralih tampilan
-            function switchTshirtView(newView) {
-                if (currentView === newView) return;
-
-                designStates[currentView] = canvas.toJSON(['selectable', 'evented', 'hasControls', 'hasBorders']);
-                currentView = newView;
-                updateCanvasForView(currentColor, currentView);
-
-                document.querySelectorAll('.btn-group .btn').forEach(btn => btn.classList.remove('active'));
-                const newViewButton = document.querySelector(`#view-${newView}`);
-                if (newViewButton) {
-                    newViewButton.classList.add('active');
-                }
-            }
-
+            // ==========================================
+            // 2. LOGIKA KALKULASI HARGA (KUMULATIF & STABIL)
+            // ==========================================
             function calculatePrice() {
-                const quantity = parseInt(document.getElementById('quantity').value);
+                if (isSwitchingView) return; // Jangan hitung saat sedang transisi view
+
+                const quantity = parseInt(document.getElementById('quantity').value) || 1;
                 const size = document.getElementById('size').value;
-                const pricePerUnit = productPrice + sizePrices[size];
+                const pricePerUnit = productPrice + (sizePrices[size] || 0);
                 const totalProductPrice = pricePerUnit * quantity;
 
                 let totalDesignCost = 0;
-                const allDesigns = [];
+                let allDesigns = [];
 
-                for (const view in designStates) {
-                    if (designStates[view] && designStates[view].objects) {
-                        allDesigns.push(...designStates[view].objects.filter(obj => obj.type === 'image'));
-                    }
-                }
-
-                canvas.getObjects().forEach(obj => {
-                    if (obj.type === 'image' && obj !== baseTshirtImage) {
-                        allDesigns.push(obj.toObject());
+                // Gabungkan desain dari VIEW LAIN (yang tersimpan di memori)
+                Object.keys(designStates).forEach(view => {
+                    if (view !== currentView && designStates[view]) {
+                        allDesigns.push(...designStates[view]);
                     }
                 });
 
-                if (allDesigns.length > 0) {
-                    let maxDesignCost = 0;
-                    allDesigns.forEach(obj => {
-                        const imgArea = (obj.width || 0) * (obj.height || 0) * (obj.scaleX || 1) * (obj
-                            .scaleY || 1);
-                        if (imgArea < 1000) maxDesignCost = Math.max(maxDesignCost, designCosts.small);
-                        else if (imgArea < 3000) maxDesignCost = Math.max(maxDesignCost, designCosts
-                            .medium);
-                        else maxDesignCost = Math.max(maxDesignCost, designCosts.large);
-                    });
-                    totalDesignCost = maxDesignCost;
-                }
+                // Gabungkan desain dari KANVAS SEKARANG (Live)
+                canvas.getObjects().forEach(obj => {
+                    if (obj.type === 'image' && obj !== baseTshirtImage) {
+                        allDesigns.push(obj.toObject(['selectable', 'evented', 'hasControls',
+                            'hasBorders']));
+                    }
+                });
+
+                // Hitung Biaya Tiap Desain berdasarkan Luas Area (Threshold A5, A4, A3)
+                allDesigns.forEach(obj => {
+                    const imgArea = (obj.width * obj.scaleX) * (obj.height * obj.scaleY);
+
+                    // Threshold area pada canvas 400x400
+                    if (imgArea < 60000) totalDesignCost += designCosts.small; // A5
+                    else if (imgArea < 110000) totalDesignCost += designCosts.medium; // A4
+                    else totalDesignCost += designCosts.large; // A3
+                });
 
                 const total = totalProductPrice + totalDesignCost;
-
                 document.getElementById('total-price').innerText = `Rp ${total.toLocaleString('id-ID')}`;
                 document.getElementById('total_price_input').value = total;
             }
 
+            // ==========================================
+            // 3. NAVIGASI VIEW & STATE MANAGEMENT
+            // ==========================================
+            function switchTshirtView(newView) {
+                if (currentView === newView) return;
+
+                isSwitchingView = true; // Kunci perhitungan harga sementara
+
+                // Simpan HANYA objek desain dari kanvas saat ini ke memori
+                designStates[currentView] = canvas.getObjects()
+                    .filter(obj => obj !== baseTshirtImage)
+                    .map(obj => obj.toObject(['selectable', 'evented', 'hasControls', 'hasBorders']));
+
+                currentView = newView;
+                updateCanvasForView(currentColor, currentView);
+
+                document.querySelectorAll('.btn-group .btn').forEach(btn => btn.classList.remove('active'));
+                document.querySelector(`#view-${newView}`).classList.add('active');
+            }
+
+            function updateCanvasForView(color, view) {
+                canvas.clear();
+                const imageUrl = `{{ asset('kaos') }}/kaos-${color}-${view}.png`;
+
+                fabric.Image.fromURL(imageUrl, function(img) {
+                    img.set({
+                        left: 200,
+                        top: 200,
+                        originX: 'center',
+                        originY: 'center',
+                        selectable: false,
+                        evented: false
+                    });
+                    img.scaleToWidth(360);
+                    baseTshirtImage = img;
+                    canvas.add(baseTshirtImage);
+                    canvas.sendToBack(baseTshirtImage);
+
+                    // Muat desain yang disimpan di memori untuk view ini
+                    if (designStates[view] && designStates[view].length > 0) {
+                        fabric.util.enlivenObjects(designStates[view], function(objects) {
+                            objects.forEach(o => canvas.add(o));
+                            canvas.renderAll();
+                            isSwitchingView = false; // Buka kunci
+                            calculatePrice();
+                        });
+                    } else {
+                        isSwitchingView = false; // Buka kunci
+                        calculatePrice();
+                    }
+                }, {
+                    crossOrigin: 'anonymous'
+                });
+            }
+
+            // ==========================================
+            // 4. INIT & EVENT LISTENERS
+            // ==========================================
             function initCanvas() {
                 canvas = new fabric.Canvas('tshirt-canvas', {
                     width: 400,
                     height: 400,
                     backgroundColor: '#f8f9fa'
                 });
-
                 updateCanvasForView(currentColor, currentView);
-
                 canvas.on('object:modified', calculatePrice);
                 canvas.on('object:added', calculatePrice);
                 canvas.on('object:removed', calculatePrice);
             }
 
-            const deleteIcon =
-                "data:image/svg+xml;utf8," +
-                "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'>" +
-                "<circle cx='12' cy='12' r='12' fill='red'/>" +
-                "<path d='M7 7 L17 17 M17 7 L7 17' stroke='white' stroke-width='2'/>" +
-                "</svg>";
-
-            const deleteImg = document.createElement("img");
-            deleteImg.src = deleteIcon;
-
-            function deleteObject(_eventData, transform) {
-                const canvas = transform.target.canvas;
-                if (transform.target !== baseTshirtImage) {
-                    canvas.remove(transform.target);
-                    canvas.requestRenderAll();
-                    calculatePrice();
-                }
-
-                const fileInput = document.getElementById("design-file");
-                if (fileInput) fileInput.value = "";
-            }
-
-            function renderIcon(ctx, left, top, _styleOverride, fabricObject) {
-                const size = this.cornerSize;
-                ctx.save();
-                ctx.translate(left, top);
-                ctx.rotate(fabric.util.degreesToRadians(fabricObject.angle));
-                ctx.drawImage(deleteImg, -size / 2, -size / 2, size, size);
-                ctx.restore();
-            }
-
-            fabric.Object.prototype.controls.deleteControl = new fabric.Control({
-                x: 0.5,
-                y: -0.5,
-                offsetY: -10,
-                cursorStyle: "pointer",
-                mouseUpHandler: deleteObject,
-                render: renderIcon,
-                cornerSize: 24
-            });
-
+            // Tambah Gambar
             document.getElementById('design-file').addEventListener('change', function(e) {
-                const files = e.target.files;
-                if (files.length > 0) {
-                    Array.from(files).forEach(file => {
-                        const reader = new FileReader();
-                        reader.onload = function(event) {
-                            fabric.Image.fromURL(event.target.result, function(img) {
-                                img.scaleToWidth(canvas.width * 0.4);
-                                img.set({
-                                    left: canvas.width / 2,
-                                    top: canvas.height / 2,
-                                    originX: 'center',
-                                    originY: 'center',
-                                    selectable: true,
-                                    hasControls: true,
-                                    hasBorders: true
-                                });
-                                canvas.add(img);
-                                canvas.setActiveObject(img);
-                                canvas.bringToFront(img);
-                                calculatePrice();
-                            }, {
-                                crossOrigin: 'anonymous'
+                Array.from(e.target.files).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = function(f) {
+                        fabric.Image.fromURL(f.target.result, function(img) {
+                            img.scaleToWidth(150);
+                            img.set({
+                                left: 200,
+                                top: 200,
+                                originX: 'center',
+                                originY: 'center'
                             });
-                        };
-                        reader.readAsDataURL(file);
-                    });
-                }
+                            canvas.add(img);
+                            canvas.setActiveObject(img);
+                            calculatePrice();
+                        });
+                    };
+                    reader.readAsDataURL(file);
+                });
             });
 
-            document.getElementById('quantity').addEventListener('change', calculatePrice);
-            document.getElementById('size').addEventListener('change', calculatePrice);
-
+            // ==========================================
+            // 5. PROSES KONFIRMASI (FINAL RENDERING)
+            // ==========================================
             document.getElementById('order-form').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 const btn = document.getElementById('submit-button');
                 btn.disabled = true;
-                btn.innerHTML =
-                    '<i class="fas fa-spinner fa-spin me-2"></i>Mempersiapkan File Cetak HD...';
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Memproses...';
 
-                try {
-                    // Simpan state terakhir sebelum upload
-                    designStates[currentView] = canvas.toJSON(['selectable', 'evented', 'hasControls',
-                        'hasBorders'
-                    ]);
+                // Simpan state terakhir
+                designStates[currentView] = canvas.getObjects()
+                    .filter(obj => obj !== baseTshirtImage)
+                    .map(obj => obj.toObject());
 
-                    const views = ['depan', 'belakang', 'samping'];
+                const views = ['depan', 'belakang', 'samping'];
+                for (const view of views) {
+                    await new Promise((resolve) => {
+                        canvas.clear();
+                        const shirtUrl =
+                        `{{ asset('kaos') }}/kaos-${currentColor}-${view}.png`;
+                        fabric.Image.fromURL(shirtUrl, function(img) {
+                            img.set({
+                                left: 200,
+                                top: 200,
+                                originX: 'center',
+                                originY: 'center',
+                                selectable: false
+                            });
+                            img.scaleToWidth(360);
+                            canvas.add(img);
 
-                    for (const view of views) {
-                        await new Promise((resolve) => {
-                            canvas.clear();
-
-                            // Fungsi pembantu untuk memotret kanvas
-                            const renderPoto = () => {
+                            const doRender = () => {
                                 setTimeout(() => {
-                                    // ==========================================
-                                    // 1. FOTO MOCKUP (Ada Kaos & Background Abu)
-                                    // ==========================================
-                                    canvas.backgroundColor =
-                                    '#f8f9fa'; // Warna abu bawaan
-                                    canvas.getObjects().forEach(obj => {
-                                        obj.visible = true;
-                                    }); // Munculin semua
-                                    canvas.renderAll();
-
+                                    // 1. Simpan MOCKUP (Ada Kaos)
                                     document.getElementById(
-                                            `design_data_url_${view}`).value =
-                                        canvas.toDataURL({
-                                            format: 'png',
+                                            `design_data_url_${view}`)
+                                        .value = canvas.toDataURL({
                                             multiplier: 2
                                         });
-
-                                    // ==========================================
-                                    // 2. FOTO BAHAN CETAK (Transparan & Cuma Desain)
-                                    // ==========================================
+                                    // 2. Simpan BAHAN (Hanya Desain, HD Transparan)
+                                    img.visible = false;
                                     canvas.backgroundColor =
-                                    'rgba(0,0,0,0)'; // Ubah kanvas jadi tembus pandang!
-
-                                    canvas.getObjects().forEach(obj => {
-                                        // TRIK JITU: Kaos itu selectable: false, desain user selectable: true
-                                        if (obj.selectable === false) {
-                                            obj.visible =
-                                            false; // Sembunyikan kaosnya!
-                                        }
-                                    });
+                                    'rgba(0,0,0,0)';
                                     canvas.renderAll();
-
                                     document.getElementById(
-                                            `raw_design_data_url_${view}`).value =
-                                        canvas.toDataURL({
-                                            format: 'png',
-                                            multiplier: 6,
-                                            quality: 1.0
+                                            `raw_design_data_url_${view}`)
+                                        .value = canvas.toDataURL({
+                                            multiplier: 6
                                         });
-
-                                    resolve(); // Selesai untuk sisi ini
+                                    resolve();
                                 }, 300);
                             };
 
-                            // Muat desain dari memori (jika ada)
-                            if (designStates[view]) {
-                                canvas.loadFromJSON(designStates[view], renderPoto);
-                            } else {
-                                // Jika kosong, load kaos default aja
-                                const shirtUrl =
-                                    `{{ asset('kaos') }}/kaos-${currentColor}-${view}.png`;
-                                fabric.Image.fromURL(shirtUrl, function(img) {
-                                    if (img) {
-                                        img.set({
-                                            left: canvas.width / 2,
-                                            top: canvas.height / 2,
-                                            originX: 'center',
-                                            originY: 'center',
-                                            selectable: false,
-                                            evented: false
-                                        });
-                                        img.scaleToWidth(canvas.width * 0.9);
-                                        canvas.add(img);
-                                    }
-                                    renderPoto();
-                                }, {
-                                    crossOrigin: 'anonymous'
+                            if (designStates[view].length > 0) {
+                                fabric.util.enlivenObjects(designStates[view], (
+                                objs) => {
+                                    objs.forEach(o => canvas.add(o));
+                                    doRender();
                                 });
+                            } else {
+                                doRender();
                             }
+                        }, {
+                            crossOrigin: 'anonymous'
                         });
-                    }
-
-                    // Kembalikan tampilan kanvas ke semula sebelum di-submit
-                    updateCanvasForView(currentColor, currentView);
-
-                    // Submit form manual ke backend
-                    calculatePrice();
-                    this.submit();
-
-                } catch (err) {
-                    console.error(err);
-                    alert("Terjadi kesalahan saat memproses gambar: " + err);
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-check-circle me-2"></i>Konfirmasi & Pesan';
+                    });
                 }
+                this.submit();
             });
-
-            window.incrementQuantity = function() {
-                const input = document.getElementById('quantity');
-                let value = parseInt(input.value);
-                if (value < maxStock) {
-                    input.value = value + 1;
-                    calculatePrice();
-                }
-            };
-
-            window.decrementQuantity = function() {
-                const input = document.getElementById('quantity');
-                let value = parseInt(input.value);
-                if (value > 1) {
-                    input.value = value - 1;
-                    calculatePrice();
-                }
-            };
 
             initCanvas();
 
-            const colorOptionsDiv = document.getElementById('color-options');
-            Object.keys(colorOptions).forEach(colorKey => {
-                const button = document.createElement('button');
-                button.type = 'button';
-                button.classList.add('btn', 'rounded-circle', 'p-4', 'border');
-                button.style.backgroundColor = colorOptions[colorKey];
-                button.dataset.color = colorKey;
-                if (colorKey === 'putih') {
-                    button.classList.add('active', 'border-primary');
+            // Setup tombol quantity & warna (sama seperti sebelumnya)
+            window.incrementQuantity = () => {
+                let q = document.getElementById('quantity');
+                if (parseInt(q.value) < maxStock) {
+                    q.value++;
+                    calculatePrice();
                 }
-                button.addEventListener('click', function() {
-                    document.querySelectorAll('#color-options .btn').forEach(btn => btn.classList
-                        .remove('active', 'border-primary'));
-                    this.classList.add('active', 'border-primary');
-                    currentColor = this.dataset.color;
-                    document.getElementById('selected_color_input').value = currentColor;
-                    updateCanvasForView(currentColor, currentView);
-                });
-                colorOptionsDiv.appendChild(button);
-            });
+            };
+            window.decrementQuantity = () => {
+                let q = document.getElementById('quantity');
+                if (parseInt(q.value) > 1) {
+                    q.value--;
+                    calculatePrice();
+                }
+            };
 
-            document.querySelectorAll('.btn-group .btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    switchTshirtView(this.dataset.view);
-                });
-            });
+            document.querySelectorAll('.btn-group .btn').forEach(b => b.addEventListener('click', function() {
+                switchTshirtView(this.dataset.view);
+            }));
         });
     </script>
 @endsection
