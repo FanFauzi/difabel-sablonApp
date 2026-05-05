@@ -33,7 +33,7 @@ class UserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => bcrypt($request->password),
-            'role' => $request->role,
+            'role' => 'user',
         ]);
 
         return redirect()->route('admin.users.index')->with('success', 'User berhasil ditambahkan!');

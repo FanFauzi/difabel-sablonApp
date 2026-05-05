@@ -18,9 +18,7 @@ use App\Http\Controllers\Admin\FinancialReportController;
 use App\Http\Controllers\User\DashboardController as UserDashboardController;
 use App\Http\Controllers\User\OrderController as UserOrderController;
 use App\Http\Controllers\User\ProfileController as UserProfileController;
-// Asumsi UserController lama yang ngurusin view produk & histori pesanan user dipecah ke User\ProductController dll, 
-// tapi kalau lu masih gabung di UserController, pastikan letaknya di folder User/UserController.php
-use App\Http\Controllers\User\UserController as ClientController; 
+use App\Http\Controllers\User\UserController as ClientController;
 
 
 // ================= PUBLIC ROUTES =================
@@ -52,7 +50,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // Order Management
     Route::resource('orders', OrderManageController::class)->except(['create', 'store']);
     Route::get('/orders/{id}/delete', [OrderManageController::class, 'delete'])->name('orders.delete');
-    
+
     // Order Actions (Admin side)
     Route::get('/orders/{order}/success', [OrderManageController::class, 'success'])->name('orders.success');
     Route::get('/orders/{order}/download-design', [OrderManageController::class, 'downloadDesign'])->name('orders.download-design');
@@ -80,7 +78,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 Route::middleware(['auth', 'role:user'])->group(function () {
 
     Route::get('/user/home', [HomeController::class, 'userHome'])->name('user.home');
-    Route::get('/user/dashboard', [UserDashboardController::class, 'dashboard'])->name('user.dashboard'); 
+    Route::get('/user/dashboard', [UserDashboardController::class, 'dashboard'])->name('user.dashboard');
 
     // -- Produk --
     Route::get('/products', [ClientController::class, 'products'])->name('user.products');
@@ -93,6 +91,6 @@ Route::middleware(['auth', 'role:user'])->group(function () {
 
     // -- Lainnya --
     Route::get('/check-status', [ClientController::class, 'checkStatus'])->name('user.check-status');
-    Route::get('/profile', [UserProfileController::class, 'showProfile'])->name('user.profile');
-    Route::put('/profile', [UserProfileController::class, 'updateProfile'])->name('user.profile.update');
+    Route::get('/profile', [ClientController::class, 'showProfile'])->name('user.profile');
+    Route::put('/profile', [ClientController::class, 'updateProfile'])->name('user.profile.update');
 });

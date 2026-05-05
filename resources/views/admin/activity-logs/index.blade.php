@@ -230,7 +230,7 @@
                                             <small class="text-muted">{{ $log->created_at->format('H:i:s') }}</small>
                                         </td>
                                         <td>
-                                            <form action="{{ route('activity-logs.destroy', $log->id) }}" method="POST" class="d-inline">
+                                            <form action="{{ route('admin.activity-logs.destroy', $log->id) }}" method="POST" class="d-inline">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Apakah Anda yakin ingin menghapus log ini?')" title="Hapus Log">

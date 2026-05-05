@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
@@ -94,7 +94,7 @@ class ActivityLogsController extends Controller
         $activityLog = ActivityLog::findOrFail($id);
         $activityLog->delete();
 
-        return redirect()->route('activity-logs.index')
+        return redirect()->route('admin.activity-logs.index')
                         ->with('success', 'Log aktivitas berhasil dihapus');
     }
 
@@ -126,7 +126,7 @@ class ActivityLogsController extends Controller
         $count = $query->count();
         $query->delete();
 
-        return redirect()->route('activity-logs.index')
+        return redirect()->route('admin.activity-logs.index')
                         ->with('success', "Berhasil menghapus {$count} log aktivitas");
     }
 }

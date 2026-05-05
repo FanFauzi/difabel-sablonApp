@@ -9,7 +9,7 @@ class AddStockToCustomProductsTable extends Migration
     public function up()
     {
         Schema::table('custom_products', function (Blueprint $table) {
-            $table->integer('stock')->default(0)->after('price');
+            $table->integer('stock')->default(0);
         });
     }
 

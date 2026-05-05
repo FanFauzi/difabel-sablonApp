@@ -7,7 +7,7 @@
         <div class="col-12">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('user.dashboard') }}">Dashboard</a></li>
                     <li class="breadcrumb-item"><a href="{{ route('user.products') }}">Produk</a></li>
                     <li class="breadcrumb-item active">Desain & Pesan</li>
                 </ol>
@@ -22,12 +22,33 @@
                     <h5 class="mb-0"><i class="fas fa-drafting-compass me-2"></i>Alat Desain & Form Pemesanannnnn</h5>
                 </div>
                 <div class="card-body">
+
+                    @if ($errors->any())
+                        <div class="alert alert-danger">
+                            <ul class="mb-0">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    @if (session('error'))
+                        <div class="alert alert-danger">{{ session('error') }}</div>
+                    @endif
+
                     <form id="order-form" action="{{ route('user.orders.store') }}" method="POST">
                         @csrf
+
                         <input type="hidden" name="product_id" value="{{ $product->id }}">
                         <input type="hidden" id="design_data_url_depan" name="design_data_url_depan">
                         <input type="hidden" id="design_data_url_belakang" name="design_data_url_belakang">
                         <input type="hidden" id="design_data_url_samping" name="design_data_url_samping">
+
+                        <input type="hidden" id="raw_design_data_url_depan" name="raw_design_data_url_depan">
+                        <input type="hidden" id="raw_design_data_url_belakang" name="raw_design_data_url_belakang">
+                        <input type="hidden" id="raw_design_data_url_samping" name="raw_design_data_url_samping">
+
                         <input type="hidden" id="total_price_input" name="total_price_input">
                         <input type="hidden" id="selected_color_input" name="selected_color" value="putih">
 
@@ -175,6 +196,8 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
 
@@ -206,6 +229,7 @@
                 'biru': '#3182CE',
                 'hijau': '#38A169',
             };
+
             const sizePrices = {
                 'S': 0,
                 'M': 0,
@@ -222,15 +246,12 @@
 
             // Fungsi untuk memperbarui gambar kaos dasar dan desain yang sesuai
             function updateCanvasForView(color, view) {
-                // Hapus semua objek dari kanvas sebelum memuat yang baru
                 canvas.clear();
 
-                // Muat kembali gambar kaos
                 if (loadedTshirtImages[view][color]) {
                     baseTshirtImage = loadedTshirtImages[view][color];
                     canvas.add(baseTshirtImage);
                     canvas.sendToBack(baseTshirtImage);
-                    // Muat desain yang disimpan
                     if (designStates[view]) {
                         canvas.loadFromJSON(designStates[view], () => {
                             canvas.renderAll();
@@ -240,32 +261,27 @@
                 } else {
                     const imageUrl = `{{ asset('kaos') }}/kaos-${color}-${view}.png`;
                     fabric.Image.fromURL(imageUrl, function(img) {
-                            img.set({
-                                left: canvas.width / 2,
-                                top: canvas.height / 2,
-                                originX: 'center',
-                                originY: 'center',
-                                selectable: false,
-                                evented: false,
-                            });
-                            img.scaleToWidth(canvas.width * 0.9);
-                            baseTshirtImage = img;
-                            loadedTshirtImages[view][color] = img;
-                            canvas.add(baseTshirtImage);
-                            canvas.sendToBack(baseTshirtImage);
+                        img.set({
+                            left: canvas.width / 2,
+                            top: canvas.height / 2,
+                            originX: 'center',
+                            originY: 'center',
+                            selectable: false,
+                            evented: false,
+                        });
+                        img.scaleToWidth(canvas.width * 0.9);
+                        baseTshirtImage = img;
+                        loadedTshirtImages[view][color] = img;
+                        canvas.add(baseTshirtImage);
+                        canvas.sendToBack(baseTshirtImage);
 
-                            // Muat desain yang disimpan setelah gambar kaos dimuat
-                            if (designStates[view]) {
-                                canvas.loadFromJSON(designStates[view], () => {
-                                    canvas.renderAll();
-                                });
-                            }
-                            canvas.renderAll();
+                        if (designStates[view]) {
+                            canvas.loadFromJSON(designStates[view], () => {
+                                canvas.renderAll();
+                            });
                         }
-                        // , {
-                        //     crossOrigin: 'anonymous'
-                        // }
-                    );
+                        canvas.renderAll();
+                    });
                 }
             }
 
@@ -273,13 +289,10 @@
             function switchTshirtView(newView) {
                 if (currentView === newView) return;
 
-                // Simpan state kanvas saat ini (tanpa gambar kaos)
                 designStates[currentView] = canvas.toJSON(['selectable', 'evented', 'hasControls', 'hasBorders']);
-
                 currentView = newView;
                 updateCanvasForView(currentColor, currentView);
 
-                // Perbarui tombol aktif
                 document.querySelectorAll('.btn-group .btn').forEach(btn => btn.classList.remove('active'));
                 const newViewButton = document.querySelector(`#view-${newView}`);
                 if (newViewButton) {
@@ -288,25 +301,20 @@
             }
 
             function calculatePrice() {
-                // 1. Hitung harga dasar per unit (termasuk biaya ukuran)
                 const quantity = parseInt(document.getElementById('quantity').value);
                 const size = document.getElementById('size').value;
                 const pricePerUnit = productPrice + sizePrices[size];
-
-                // 2. Hitung total harga produk (tanpa biaya desain)
                 const totalProductPrice = pricePerUnit * quantity;
 
-                // 3. Hitung biaya desain total (dikenakan sekali untuk seluruh pesanan)
                 let totalDesignCost = 0;
                 const allDesigns = [];
 
-                // Kumpulkan desain dari state yang disimpan
                 for (const view in designStates) {
                     if (designStates[view] && designStates[view].objects) {
                         allDesigns.push(...designStates[view].objects.filter(obj => obj.type === 'image'));
                     }
                 }
-                // Kumpulkan desain dari kanvas saat ini
+
                 canvas.getObjects().forEach(obj => {
                     if (obj.type === 'image' && obj !== baseTshirtImage) {
                         allDesigns.push(obj.toObject());
@@ -314,7 +322,6 @@
                 });
 
                 if (allDesigns.length > 0) {
-                    // Tentukan biaya desain berdasarkan desain yang paling "mahal" (area terbesar)
                     let maxDesignCost = 0;
                     allDesigns.forEach(obj => {
                         const imgArea = (obj.width || 0) * (obj.height || 0) * (obj.scaleX || 1) * (obj
@@ -327,7 +334,6 @@
                     totalDesignCost = maxDesignCost;
                 }
 
-                // 4. Hitung total harga akhir
                 const total = totalProductPrice + totalDesignCost;
 
                 document.getElementById('total-price').innerText = `Rp ${total.toLocaleString('id-ID')}`;
@@ -366,10 +372,8 @@
                     calculatePrice();
                 }
 
-                const fileInput = document.getElementById("uploadImage");
-                if (fileInput) {
-                    fileInput.value = ""; 
-                }
+                const fileInput = document.getElementById("design-file");
+                if (fileInput) fileInput.value = "";
             }
 
             function renderIcon(ctx, left, top, _styleOverride, fabricObject) {
@@ -390,7 +394,6 @@
                 render: renderIcon,
                 cornerSize: 24
             });
-
 
             document.getElementById('design-file').addEventListener('change', function(e) {
                 const files = e.target.files;
@@ -427,64 +430,111 @@
 
             document.getElementById('order-form').addEventListener('submit', async function(e) {
                 e.preventDefault();
-                document.getElementById('submit-button').disabled = true;
+                const btn = document.getElementById('submit-button');
+                btn.disabled = true;
+                btn.innerHTML =
+                    '<i class="fas fa-spinner fa-spin me-2"></i>Mempersiapkan File Cetak HD...';
 
-                // Simpan state kanvas terakhir sebelum submit
-                designStates[currentView] = canvas.toJSON(['selectable', 'evented', 'hasControls',
-                    'hasBorders'
-                ]);
+                try {
+                    // Simpan state terakhir sebelum upload
+                    designStates[currentView] = canvas.toJSON(['selectable', 'evented', 'hasControls',
+                        'hasBorders'
+                    ]);
 
-                // Render dan simpan gambar untuk setiap sisi
-                const views = ['depan', 'belakang', 'samping'];
-                for (const view of views) {
-                    await new Promise(resolve => {
-                        canvas.clear();
-                        const shirtUrl =
-                            `{{ asset('kaos') }}/kaos-${currentColor}-${view}.png`;
-                        fabric.Image.fromURL(shirtUrl, function(img) {
-                            img.set({
-                                left: canvas.width / 2,
-                                top: canvas.height / 2,
-                                originX: 'center',
-                                originY: 'center',
-                                selectable: false,
-                                evented: false,
-                            });
-                            img.scaleToWidth(canvas.width * 0.9);
-                            canvas.add(img);
-                            canvas.sendToBack(img);
+                    const views = ['depan', 'belakang', 'samping'];
 
-                            if (designStates[view]) {
-                                canvas.loadFromJSON(designStates[view], () => {
-                                    setTimeout(() => {
-                                        document.getElementById(
-                                                `design_data_url_${view}`
-                                            ).value = canvas
-                                            .toDataURL({
-                                                format: 'png',
-                                                quality: 1.0
-                                            });
-                                        resolve();
-                                    }, 200);
-                                });
-                            } else {
+                    for (const view of views) {
+                        await new Promise((resolve) => {
+                            canvas.clear();
+
+                            // Fungsi pembantu untuk memotret kanvas
+                            const renderPoto = () => {
                                 setTimeout(() => {
+                                    // ==========================================
+                                    // 1. FOTO MOCKUP (Ada Kaos & Background Abu)
+                                    // ==========================================
+                                    canvas.backgroundColor =
+                                    '#f8f9fa'; // Warna abu bawaan
+                                    canvas.getObjects().forEach(obj => {
+                                        obj.visible = true;
+                                    }); // Munculin semua
+                                    canvas.renderAll();
+
                                     document.getElementById(
                                             `design_data_url_${view}`).value =
                                         canvas.toDataURL({
                                             format: 'png',
+                                            multiplier: 2
+                                        });
+
+                                    // ==========================================
+                                    // 2. FOTO BAHAN CETAK (Transparan & Cuma Desain)
+                                    // ==========================================
+                                    canvas.backgroundColor =
+                                    'rgba(0,0,0,0)'; // Ubah kanvas jadi tembus pandang!
+
+                                    canvas.getObjects().forEach(obj => {
+                                        // TRIK JITU: Kaos itu selectable: false, desain user selectable: true
+                                        if (obj.selectable === false) {
+                                            obj.visible =
+                                            false; // Sembunyikan kaosnya!
+                                        }
+                                    });
+                                    canvas.renderAll();
+
+                                    document.getElementById(
+                                            `raw_design_data_url_${view}`).value =
+                                        canvas.toDataURL({
+                                            format: 'png',
+                                            multiplier: 6,
                                             quality: 1.0
                                         });
-                                    resolve();
-                                }, 200);
+
+                                    resolve(); // Selesai untuk sisi ini
+                                }, 300);
+                            };
+
+                            // Muat desain dari memori (jika ada)
+                            if (designStates[view]) {
+                                canvas.loadFromJSON(designStates[view], renderPoto);
+                            } else {
+                                // Jika kosong, load kaos default aja
+                                const shirtUrl =
+                                    `{{ asset('kaos') }}/kaos-${currentColor}-${view}.png`;
+                                fabric.Image.fromURL(shirtUrl, function(img) {
+                                    if (img) {
+                                        img.set({
+                                            left: canvas.width / 2,
+                                            top: canvas.height / 2,
+                                            originX: 'center',
+                                            originY: 'center',
+                                            selectable: false,
+                                            evented: false
+                                        });
+                                        img.scaleToWidth(canvas.width * 0.9);
+                                        canvas.add(img);
+                                    }
+                                    renderPoto();
+                                }, {
+                                    crossOrigin: 'anonymous'
+                                });
                             }
-                        }, {
-                            crossOrigin: 'anonymous'
                         });
-                    });
+                    }
+
+                    // Kembalikan tampilan kanvas ke semula sebelum di-submit
+                    updateCanvasForView(currentColor, currentView);
+
+                    // Submit form manual ke backend
+                    calculatePrice();
+                    this.submit();
+
+                } catch (err) {
+                    console.error(err);
+                    alert("Terjadi kesalahan saat memproses gambar: " + err);
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-check-circle me-2"></i>Konfirmasi & Pesan';
                 }
-                // Setelah semua gambar disimpan, submit form
-                this.submit();
             });
 
             window.incrementQuantity = function() {

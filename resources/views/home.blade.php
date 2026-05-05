@@ -44,7 +44,7 @@
                         <li><a href="{{ route('admin.dashboard') }}" class="hover:text-blue-600 transition">Dashboard</a>
                         </li>
                     @else
-                        <li><a href="{{ route('dashboard') }}" class="hover:text-blue-600 transition">Dashboard</a>
+                        <li><a href="{{ route('user.dashboard') }}" class="hover:text-blue-600 transition">Dashboard</a>
                         </li>
                     @endif
                 @endauth
@@ -75,7 +75,7 @@
                         <li><a href="{{ route('admin.dashboard') }}"
                                 class="hover:text-blue-600 transition mobile-link">Dashboard</a></li>
                     @else
-                        <li><a href="{{ route('dashboard') }}"
+                        <li><a href="{{ route('user.dashboard') }}"
                                 class="hover:text-blue-600 transition mobile-link">Dashboard</a></li>
                     @endif
                 @endauth

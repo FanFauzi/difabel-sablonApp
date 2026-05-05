@@ -70,7 +70,7 @@
 
                 <ul class="nav flex-column">
                     <li class="nav-item mb-1">
-                        <a class="nav-link text-white {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
+                        <a class="nav-link text-white {{ request()->routeIs('user.dashboard') ? 'active' : '' }}" href="{{ route('user.dashboard') }}">
                             <i class="fas fa-tachometer-alt fa-fw me-2"></i>Dashboard
                         </a>
                     </li>

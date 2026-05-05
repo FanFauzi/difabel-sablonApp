@@ -98,7 +98,7 @@ class AuthController extends Controller
 
     public function forceLogout()
     {
-        \Illuminate\Support\Facades\Auth::logout();
+        Auth::logout();
         session()->flush();
         return redirect('/login')->with('success', 'Berhasil logout. Silakan login kembali.');
     }

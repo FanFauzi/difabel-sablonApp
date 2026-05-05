@@ -4,7 +4,6 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 
-// use Illuminate\Routing\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -37,17 +36,16 @@ class UserController extends Controller
         /** @var User $user */
         $user = Auth::user();
         $orders = $user->orders()->latest()->paginate(10);
-        return view('user.orders', compact('orders'));
+        return view('user.orders.index', compact('orders'));
     }
 
     public function showOrder(Order $order)
     {
-        // Ensure user can only view their own orders
         if ($order->user_id !== Auth::id()) {
             abort(403, 'Unauthorized');
         }
 
-        return view('user.order-show', compact('order'));
+        return view('user.orders.show', compact('order'));
     }
 
     public function checkStatus(Request $request)
@@ -110,7 +108,7 @@ class UserController extends Controller
 
     public function dashboard()
     {
-        $user = \Illuminate\Support\Facades\Auth::user();
+        $user = Auth::user();
         
         $summary = [
             'totalOrders' => $user->orders()->count(),
