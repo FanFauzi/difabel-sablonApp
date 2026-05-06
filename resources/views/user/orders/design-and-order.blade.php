@@ -98,6 +98,18 @@
                                     <label class="form-label">Upload Gambar Desain</label>
                                     <input type="file" id="design-file" class="form-control" accept="image/*" multiple>
                                 </div>
+
+                                <div id="active-design-list" class="mb-4">
+                                    <label class="form-label fw-bold text-primary"><i class="fas fa-list me-2"></i>Daftar
+                                        Ukuran Desain</label>
+                                    <div id="design-items-container">
+                                        <div class="text-muted small p-2 border rounded bg-light text-center"
+                                            id="empty-design-msg">
+                                            Belum ada desain yang ditambahkan
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div class="col-12">
                                     <label class="form-label">Catatan Desain (Opsional)</label>
                                     <textarea class="form-control" name="design_notes" rows="2"
@@ -106,21 +118,14 @@
                             </div>
                         </div>
 
-                        <div class="mb-4">
-                            <label for="design_size_selector" class="form-label fw-bold text-primary"><i
-                                    class="fas fa-expand-arrows-alt me-2"></i>Pilih Ukuran Sablon</label>
-                            <select id="design_size_selector" name="design_size"
-                                class="form-select border-primary form-select-lg" onchange="changeSizeLimit()">
-                                <option value="small">Ukuran A5 (Logo Saku / Max 15x20cm) - Tambah Rp
-                                    {{ number_format($product->small_design_cost ?? 0, 0, ',', '.') }}</option>
-                                <option value="medium" selected>Ukuran A4 (Standar Dada / Max 21x29cm) - Tambah Rp
-                                    {{ number_format($product->medium_design_cost ?? 0, 0, ',', '.') }}</option>
-                                <option value="large">Ukuran A3 (Full Body / Max 29x42cm) - Tambah Rp
-                                    {{ number_format($product->large_design_cost ?? 0, 0, ',', '.') }}</option>
-                            </select>
-                            <div class="form-text">Garis putus-putus pada kaos akan otomatis menyesuaikan pilihan Anda.
-                            </div>
-                        </div>
+                        <div id="active-design-list" class="mb-4">
+    <label class="form-label fw-bold text-primary"><i class="fas fa-list me-2"></i>Daftar Ukuran Desain (Semua Sisi)</label>
+    <div id="design-items-container" class="p-2 border rounded bg-light">
+        <div class="text-muted small text-center py-2" id="empty-design-msg">
+            Belum ada desain yang ditambahkan
+        </div>
+    </div>
+</div>
 
                         <div class="mb-4">
                             <h6 class="text-primary mb-3"><i class="fas fa-file-invoice-dollar me-2"></i>3. Ringkasan &
@@ -211,118 +216,115 @@
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
 
             // ==========================================
-            // 1. KONFIGURASI SKALA & HARGA
+            // 1. KONFIGURASI HARGA & STATE
             // ==========================================
-            const CM_TO_PX = 8; // 1cm = 8px (Skala 1:8)
-
-            const SIZES = {
-                A5: {
-                    area: 310.8
-                }, // 14.8 x 21 cm
-                A4: {
-                    area: 623.7
-                }, // 21 x 29.7 cm
-                A3: {
-                    area: 1247.4
-                } // 29.7 x 42 cm
-            };
-
-            const designCosts = {
-                'small': {{ $product->small_design_cost ?? 0 }}, // Harga A5
-                'medium': {{ $product->medium_design_cost ?? 0 }}, // Harga A4
-                'large': {{ $product->large_design_cost ?? 0 }} // Harga A3
-            };
-
             const productPrice = {{ $product->price ?? 0 }};
-            const sizePrices = {
-                'S': 0,
-                'M': 0,
-                'L': 0,
-                'XL': 10000,
-                'XXL': 15000
+            const maxStock = {{ $product->stock ?? 0 }};
+            const sizePrices = { 'S': 0, 'M': 0, 'L': 0, 'XL': 10000, 'XXL': 15000 };
+            const designCosts = {
+                'small': {{ $product->small_design_cost ?? 0 }},  // A5
+                'medium': {{ $product->medium_design_cost ?? 0 }}, // A4
+                'large': {{ $product->large_design_cost ?? 0 }}   // A3
             };
 
-            let canvas, baseTshirtImage, printAreaBox;
+            let canvas, baseTshirtImage;
             let currentView = 'depan';
             let currentColor = 'putih';
 
-            // Simpan desain tiap sisi di sini
-            const designStates = {
-                'depan': [],
-                'belakang': [],
-                'samping': []
-            };
+            // Array pusat untuk menyimpan semua desain (Depan, Belakang, Samping)
+            let uploadedDesigns = [];
 
             // ==========================================
-            // 2. LOGIKA KALKULASI KUMULATIF (TIAP DESAIN)
+            // 2. FUNGSI KALKULASI HARGA AKUMULATIF
             // ==========================================
             window.calculatePrice = function() {
                 const quantity = parseInt(document.getElementById('quantity').value) || 1;
                 const size = document.getElementById('size').value;
 
                 let totalDesignCost = 0;
-                let allDesignObjects = [];
-
-                // Ambil desain dari SISI LAIN yang sedang tidak aktif (dari memori)
-                Object.keys(designStates).forEach(view => {
-                    if (view !== currentView) {
-                        allDesignObjects.push(...designStates[view]);
-                    }
+                uploadedDesigns.forEach(item => {
+                    totalDesignCost += designCosts[item.size] || 0;
                 });
 
-                // Ambil desain dari SISI AKTIF (yang ada di kanvas sekarang)
-                canvas.getObjects().forEach(obj => {
-                    if (obj.id === 'user-design') {
-                        // Kita ambil data mentahnya untuk dihitung
-                        allDesignObjects.push(obj.toObject(['scaleX', 'scaleY', 'width', 'height']));
-                    }
-                });
-
-                // HITUNG TIAP DESAIN SATU PER SATU
-                allDesignObjects.forEach(obj => {
-                    const w_cm = (obj.width * obj.scaleX) / CM_TO_PX;
-                    const h_cm = (obj.height * obj.scaleY) / CM_TO_PX;
-                    const area_cm2 = w_cm * h_cm;
-
-                    if (area_cm2 <= SIZES.A5.area + 50) {
-                        totalDesignCost += designCosts.small;
-                    } else if (area_cm2 <= SIZES.A4.area + 100) {
-                        totalDesignCost += designCosts.medium;
-                    } else {
-                        totalDesignCost += designCosts.large;
-                    }
-                });
-
-                const totalProductPrice = (productPrice + (sizePrices[size] || 0)) * quantity;
-                const finalTotal = totalProductPrice + totalDesignCost;
+                const basePrice = productPrice + (sizePrices[size] || 0);
+                const finalTotal = (basePrice + totalDesignCost) * quantity;
 
                 document.getElementById('total-price').innerText = `Rp ${finalTotal.toLocaleString('id-ID')}`;
                 document.getElementById('total_price_input').value = finalTotal;
             };
 
             // ==========================================
-            // 3. LOGIKA PINDAH TAMPILAN (VIEW SWITCHER)
+            // 3. FUNGSI MANAJEMEN UI DAFTAR DESAIN
+            // ==========================================
+            function updateDesignUI() {
+                const container = document.getElementById('design-items-container');
+                const emptyMsg = document.getElementById('empty-design-msg');
+
+                container.querySelectorAll('.design-row-item').forEach(el => el.remove());
+
+                if (uploadedDesigns.length === 0) {
+                    emptyMsg.style.display = 'block';
+                } else {
+                    emptyMsg.style.display = 'none';
+
+                    uploadedDesigns.forEach((item, index) => {
+                        const row = document.createElement('div');
+                        row.className = 'design-row-item border rounded p-2 mb-2 bg-white shadow-sm';
+                        row.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="small fw-bold text-truncate" style="max-width: 120px;">
+                                <i class="fas fa-image me-1"></i> Gbr ${index + 1} (${item.view})
+                            </div>
+                            <select class="form-select form-select-sm w-50" onchange="updateItemSize('${item.id}', this.value)">
+                                <option value="small" ${item.size === 'small' ? 'selected' : ''}>A5 (+Rp ${designCosts.small.toLocaleString()})</option>
+                                <option value="medium" ${item.size === 'medium' ? 'selected' : ''}>A4 (+Rp ${designCosts.medium.toLocaleString()})</option>
+                                <option value="large" ${item.size === 'large' ? 'selected' : ''}>A3 (+Rp ${designCosts.large.toLocaleString()})</option>
+                            </select>
+                            <button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="removeSpecificDesign('${item.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                        container.appendChild(row);
+                    });
+                }
+                calculatePrice();
+            }
+
+            window.updateItemSize = function(id, newSize) {
+                const item = uploadedDesigns.find(d => d.id === id);
+                if (item) {
+                    item.size = newSize;
+                    calculatePrice();
+                }
+            };
+
+            window.removeSpecificDesign = function(id) {
+                const index = uploadedDesigns.findIndex(d => d.id === id);
+                if (index !== -1) {
+                    // Cek apakah item sedang nampil di layar sekarang, kalau iya hapus visualnya
+                    if (uploadedDesigns[index].view === currentView) {
+                        canvas.remove(uploadedDesigns[index].fabricObj);
+                    }
+                    uploadedDesigns.splice(index, 1);
+                    updateDesignUI();
+                }
+            };
+
+            // ==========================================
+            // 4. NAVIGASI VIEW & WARNA
             // ==========================================
             window.switchTshirtView = function(view) {
-                if (currentView === view) return;
-
-                // Simpan desain dari sisi lama ke memori sebelum pindah
-                designStates[currentView] = canvas.getObjects()
-                    .filter(obj => obj.id === 'user-design')
-                    .map(obj => obj.toObject(['id', 'selectable', 'hasControls']));
-
                 currentView = view;
-                updateCanvasForView(currentColor, currentView);
+                updateCanvasForView(currentColor, view);
 
-                // Update tampilan tombol agar kelihatan aktif
                 document.querySelectorAll('.btn-group .btn').forEach(b => b.classList.remove('active'));
-                const activeBtn = document.querySelector(`[onclick="switchTshirtView('${view}')"]`) || document
-                    .querySelector(`[data-view="${view}"]`);
+                const activeBtn = document.getElementById(`view-${view}`);
                 if (activeBtn) activeBtn.classList.add('active');
             };
 
@@ -332,182 +334,135 @@
 
                 fabric.Image.fromURL(imageUrl, function(img) {
                     img.set({
-                        id: 'bg-kaos',
-                        left: 225,
-                        top: 325,
-                        originX: 'center',
-                        originY: 'center',
-                        selectable: false,
-                        evented: false
+                        id: 'bg-kaos', left: 225, top: 325, originX: 'center', originY: 'center', selectable: false, evented: false
                     });
                     img.scaleToHeight(630);
                     canvas.add(img);
-
-                    // Kotak Pembatas (A3 Maksimal)
-                    printAreaBox = new fabric.Rect({
-                        id: 'zona-cetak',
-                        left: 225,
-                        top: 125,
-                        width: 237,
-                        height: 336, // 29.7cm x 42cm (Skala 1:8)
-                        fill: 'transparent',
-                        stroke: 'rgba(0,0,0,0.2)',
-                        strokeWidth: 2,
-                        strokeDashArray: [5, 5],
-                        originX: 'center',
-                        originY: 'top',
-                        selectable: false,
-                        evented: false
-                    });
-                    canvas.add(printAreaBox);
                     canvas.sendToBack(img);
 
-                    // Kembalikan desain yang sudah dibuat di sisi ini (jika ada)
-                    if (designStates[view].length > 0) {
-                        fabric.util.enlivenObjects(designStates[view], (objs) => {
-                            objs.forEach(o => {
-                                o.id = 'user-design';
-                                canvas.add(o);
-                            });
-                            canvas.renderAll();
-                            calculatePrice();
-                        });
-                    } else {
-                        calculatePrice();
-                    }
-                }, {
-                    crossOrigin: 'anonymous'
-                });
+                    // Tampilkan desain milik sisi yang lagi dilihat aja
+                    uploadedDesigns.forEach(item => {
+                        if (item.view === view) {
+                            canvas.add(item.fabricObj);
+                        }
+                    });
+
+                    canvas.renderAll();
+                }, { crossOrigin: 'anonymous' });
             }
 
             // ==========================================
-            // 4. INIT & UPLOAD
+            // 5. UPLOAD & INITIALIZE
             // ==========================================
             function initCanvas() {
                 canvas = new fabric.Canvas('tshirt-canvas', {
-                    width: 450,
-                    height: 650,
-                    backgroundColor: '#f8f9fa'
+                    width: 450, height: 650, backgroundColor: '#f8f9fa'
                 });
                 updateCanvasForView(currentColor, currentView);
-
-                canvas.on('object:modified', calculatePrice);
-                canvas.on('object:removed', calculatePrice);
-
-                // Batasi scaling agar tidak melebihi A3
-                canvas.on('object:scaling', function(e) {
-                    const obj = e.target;
-                    if (obj.getScaledWidth() > printAreaBox.width) obj.scaleToWidth(printAreaBox.width);
-                    if (obj.getScaledHeight() > printAreaBox.height) obj.scaleToHeight(printAreaBox.height);
-                });
+                
+                // BUG SEBELUMNYA TELAH DIHAPUS DARI SINI: (canvas.on('object:removed'))
+                // Sekarang menggunakan event keyboard delete manual yang jauh lebih aman!
             }
+
+            // [FITUR BARU] Hapus pakai tombol Delete/Backspace di Keyboard
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Delete' || e.key === 'Backspace') {
+                    const activeObj = canvas.getActiveObject();
+                    if (activeObj && activeObj.id !== 'bg-kaos') {
+                        // Cari desain tersebut di daftar memori
+                        const item = uploadedDesigns.find(d => d.fabricObj === activeObj);
+                        if (item) window.removeSpecificDesign(item.id);
+                    }
+                }
+            });
 
             document.getElementById('design-file').addEventListener('change', function(e) {
                 Array.from(e.target.files).forEach(file => {
                     const reader = new FileReader();
                     reader.onload = function(f) {
                         fabric.Image.fromURL(f.target.result, function(img) {
-                            img.scaleToWidth(120); // Ukuran awal A5
+                            const uniqueId = 'dsgn_' + Date.now() + Math.random();
+                            img.scaleToWidth(150);
                             img.set({
-                                left: 225,
-                                top: 150,
-                                originX: 'center',
-                                originY: 'top',
-                                id: 'user-design'
+                                left: 225, top: 200, originX: 'center', originY: 'center', hasControls: true, selectable: true
                             });
+
+                            uploadedDesigns.push({
+                                id: uniqueId, view: currentView, fabricObj: img, size: 'small'
+                            });
+
                             canvas.add(img);
                             canvas.setActiveObject(img);
-                            calculatePrice();
+                            updateDesignUI();
                         });
                     };
                     reader.readAsDataURL(file);
                 });
+                this.value = '';
             });
 
             // ==========================================
-            // 5. SUBMIT (RENDER SEMUA SISI)
+            // 6. RENDER SUBMIT HD
             // ==========================================
             document.getElementById('order-form').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 const btn = document.getElementById('submit-button');
                 btn.disabled = true;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Menyimpan Semua Desain...';
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Mempersiapkan File HD...';
 
-                // Simpan state sisi aktif terakhir kali
-                designStates[currentView] = canvas.getObjects()
-                    .filter(obj => obj.id === 'user-design')
-                    .map(obj => obj.toObject(['id']));
+                // HARGA DIKUNCI DI SINI SEBELUM PROSES RENDER (ANTI-RESET)
+                calculatePrice(); 
 
                 const views = ['depan', 'belakang', 'samping'];
-                for (const view of views) {
+                for (const v of views) {
                     await new Promise((resolve) => {
                         canvas.clear();
-                        const shirtUrl =
-                        `{{ asset('kaos') }}/kaos-${currentColor}-${view}.png`;
+                        const shirtUrl = `{{ asset('kaos') }}/kaos-${currentColor}-${v}.png`;
                         fabric.Image.fromURL(shirtUrl, function(img) {
                             img.set({
-                                left: 225,
-                                top: 325,
-                                originX: 'center',
-                                originY: 'center',
-                                selectable: false
+                                left: 225, top: 325, originX: 'center', originY: 'center', selectable: false
                             });
                             img.scaleToHeight(630);
                             canvas.add(img);
 
+                            uploadedDesigns.forEach(item => {
+                                if (item.view === v) canvas.add(item.fabricObj);
+                            });
+
                             const doRender = () => {
                                 setTimeout(() => {
-                                    // 1. Mockup
-                                    canvas.getObjects().forEach(o => {
-                                        if (o.id === 'zona-cetak') o
-                                            .visible = false;
-                                    });
-                                    document.getElementById(
-                                            `design_data_url_${view}`)
-                                        .value = canvas.toDataURL({
-                                            multiplier: 2
-                                        });
-                                    // 2. Raw HD
-                                    canvas.getObjects().forEach(o => {
-                                        if (o.id === 'bg-kaos') o
-                                            .visible = false;
-                                    });
-                                    canvas.backgroundColor =
-                                    'rgba(0,0,0,0)';
+                                    document.getElementById(`design_data_url_${v}`).value = canvas.toDataURL({ multiplier: 2 });
+                                    img.visible = false;
+                                    canvas.backgroundColor = 'rgba(0,0,0,0)';
                                     canvas.renderAll();
-                                    document.getElementById(
-                                            `raw_design_data_url_${view}`)
-                                        .value = canvas.toDataURL({
-                                            multiplier: 5
-                                        });
+                                    document.getElementById(`raw_design_data_url_${v}`).value = canvas.toDataURL({ multiplier: 5 });
                                     resolve();
                                 }, 300);
                             };
-
-                            if (designStates[view].length > 0) {
-                                fabric.util.enlivenObjects(designStates[view], (
-                                objs) => {
-                                    objs.forEach(o => canvas.add(o));
-                                    doRender();
-                                });
-                            } else {
-                                doRender();
-                            }
-                        }, {
-                            crossOrigin: 'anonymous'
-                        });
+                            doRender();
+                        }, { crossOrigin: 'anonymous' });
                     });
                 }
                 this.submit();
             });
 
             initCanvas();
+            
+            // Panggil hitung harga pertama kali (Saat halaman dimuat)
+            calculatePrice();
 
-            // Tombol warna
+            // Event Listener Navigasi View 
+            document.querySelectorAll('.btn-group .btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const viewName = this.dataset.view || this.id.replace('view-', '');
+                    switchTshirtView(viewName);
+                });
+            });
+
+            // Event Listener Warna Kaos
             document.querySelectorAll('#color-options .btn').forEach(btn => {
                 btn.addEventListener('click', function() {
-                    document.querySelectorAll('#color-options .btn').forEach(b => b.classList
-                        .remove('active', 'border-primary'));
+                    document.querySelectorAll('#color-options .btn').forEach(b => b.classList.remove('active', 'border-primary'));
                     this.classList.add('active', 'border-primary');
                     currentColor = this.dataset.color;
                     document.getElementById('selected_color_input').value = currentColor;
@@ -515,17 +470,9 @@
                 });
             });
 
-            // Quantity Helpers
-            window.incrementQuantity = () => {
-                let q = document.getElementById('quantity');
-                q.value++;
-                calculatePrice();
-            };
-            window.decrementQuantity = () => {
-                let q = document.getElementById('quantity');
-                if (q.value > 1) q.value--;
-                calculatePrice();
-            };
+            // Event Listener Jumlah & Size Kaos
+            window.incrementQuantity = () => { let q = document.getElementById('quantity'); q.value++; calculatePrice(); };
+            window.decrementQuantity = () => { let q = document.getElementById('quantity'); if (q.value > 1) q.value--; calculatePrice(); };
             document.getElementById('size').addEventListener('change', calculatePrice);
         });
     </script>
