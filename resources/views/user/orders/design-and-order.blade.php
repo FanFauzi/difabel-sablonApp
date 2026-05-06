@@ -107,6 +107,22 @@
                         </div>
 
                         <div class="mb-4">
+                            <label for="design_size_selector" class="form-label fw-bold text-primary"><i
+                                    class="fas fa-expand-arrows-alt me-2"></i>Pilih Ukuran Sablon</label>
+                            <select id="design_size_selector" name="design_size"
+                                class="form-select border-primary form-select-lg" onchange="changeSizeLimit()">
+                                <option value="small">Ukuran A5 (Logo Saku / Max 15x20cm) - Tambah Rp
+                                    {{ number_format($product->small_design_cost ?? 0, 0, ',', '.') }}</option>
+                                <option value="medium" selected>Ukuran A4 (Standar Dada / Max 21x29cm) - Tambah Rp
+                                    {{ number_format($product->medium_design_cost ?? 0, 0, ',', '.') }}</option>
+                                <option value="large">Ukuran A3 (Full Body / Max 29x42cm) - Tambah Rp
+                                    {{ number_format($product->large_design_cost ?? 0, 0, ',', '.') }}</option>
+                            </select>
+                            <div class="form-text">Garis putus-putus pada kaos akan otomatis menyesuaikan pilihan Anda.
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
                             <h6 class="text-primary mb-3"><i class="fas fa-file-invoice-dollar me-2"></i>3. Ringkasan &
                                 Konfirmasi</h6>
                             <div class="card bg-light mb-3">
@@ -200,17 +216,29 @@
         document.addEventListener("DOMContentLoaded", function() {
 
             // ==========================================
-            // 1. DATA HARGA DARI DATABASE
+            // 1. KONFIGURASI SKALA & HARGA
             // ==========================================
-            const productPrice = {{ $product->price ?? 0 }};
-            const maxStock = {{ $product->stock ?? 0 }};
+            const CM_TO_PX = 8; // 1cm = 8px (Skala 1:8)
 
-            const designCosts = {
-                'small': {{ $product->small_design_cost ?? 0 }}, // A5
-                'medium': {{ $product->medium_design_cost ?? 0 }}, // A4
-                'large': {{ $product->large_design_cost ?? 0 }} // A3
+            const SIZES = {
+                A5: {
+                    area: 310.8
+                }, // 14.8 x 21 cm
+                A4: {
+                    area: 623.7
+                }, // 21 x 29.7 cm
+                A3: {
+                    area: 1247.4
+                } // 29.7 x 42 cm
             };
 
+            const designCosts = {
+                'small': {{ $product->small_design_cost ?? 0 }}, // Harga A5
+                'medium': {{ $product->medium_design_cost ?? 0 }}, // Harga A4
+                'large': {{ $product->large_design_cost ?? 0 }} // Harga A3
+            };
+
+            const productPrice = {{ $product->price ?? 0 }};
             const sizePrices = {
                 'S': 0,
                 'M': 0,
@@ -220,10 +248,10 @@
             };
 
             let canvas, baseTshirtImage, printAreaBox;
-            let currentColor = 'putih';
             let currentView = 'depan';
-            let isSwitchingView = false;
+            let currentColor = 'putih';
 
+            // Simpan desain tiap sisi di sini
             const designStates = {
                 'depan': [],
                 'belakang': [],
@@ -231,55 +259,73 @@
             };
 
             // ==========================================
-            // 2. LOGIKA KALKULASI HARGA & UKURAN
+            // 2. LOGIKA KALKULASI KUMULATIF (TIAP DESAIN)
             // ==========================================
-            function calculatePrice() {
-                if (isSwitchingView || !printAreaBox) return;
-
+            window.calculatePrice = function() {
                 const quantity = parseInt(document.getElementById('quantity').value) || 1;
                 const size = document.getElementById('size').value;
-                const totalProductPrice = (productPrice + (sizePrices[size] || 0)) * quantity;
 
                 let totalDesignCost = 0;
-                let allDesigns = [];
+                let allDesignObjects = [];
 
-                // Gabungkan memori desain dari sisi lain dan sisi aktif
+                // Ambil desain dari SISI LAIN yang sedang tidak aktif (dari memori)
                 Object.keys(designStates).forEach(view => {
-                    if (view !== currentView && designStates[view]) {
-                        allDesigns.push(...designStates[view]);
+                    if (view !== currentView) {
+                        allDesignObjects.push(...designStates[view]);
                     }
                 });
+
+                // Ambil desain dari SISI AKTIF (yang ada di kanvas sekarang)
                 canvas.getObjects().forEach(obj => {
-                    if (obj.type === 'image' && obj.id !== 'bg-kaos') {
-                        allDesigns.push(obj.toObject(['selectable', 'evented', 'hasControls', 'hasBorders',
-                            'id'
-                        ]));
+                    if (obj.id === 'user-design') {
+                        // Kita ambil data mentahnya untuk dihitung
+                        allDesignObjects.push(obj.toObject(['scaleX', 'scaleY', 'width', 'height']));
                     }
                 });
 
-                // Luas maksimal area cetak (Kotak A3)
-                const maxPrintArea = printAreaBox.width * printAreaBox.height;
+                // HITUNG TIAP DESAIN SATU PER SATU
+                allDesignObjects.forEach(obj => {
+                    const w_cm = (obj.width * obj.scaleX) / CM_TO_PX;
+                    const h_cm = (obj.height * obj.scaleY) / CM_TO_PX;
+                    const area_cm2 = w_cm * h_cm;
 
-                allDesigns.forEach(obj => {
-                    const imgArea = (obj.width * obj.scaleX) * (obj.height * obj.scaleY);
-                    const areaRatio = imgArea / maxPrintArea; // Persentase dari kotak maksimal
-
-                    // Jika <= 25% Kotak = A5
-                    // Jika <= 50% Kotak = A4
-                    // Jika > 50% Kotak = A3
-                    if (areaRatio <= 0.25) totalDesignCost += designCosts.small;
-                    else if (areaRatio <= 0.50) totalDesignCost += designCosts.medium;
-                    else totalDesignCost += designCosts.large;
+                    if (area_cm2 <= SIZES.A5.area + 50) {
+                        totalDesignCost += designCosts.small;
+                    } else if (area_cm2 <= SIZES.A4.area + 100) {
+                        totalDesignCost += designCosts.medium;
+                    } else {
+                        totalDesignCost += designCosts.large;
+                    }
                 });
 
-                const total = totalProductPrice + totalDesignCost;
-                document.getElementById('total-price').innerText = `Rp ${total.toLocaleString('id-ID')}`;
-                document.getElementById('total_price_input').value = total;
-            }
+                const totalProductPrice = (productPrice + (sizePrices[size] || 0)) * quantity;
+                const finalTotal = totalProductPrice + totalDesignCost;
+
+                document.getElementById('total-price').innerText = `Rp ${finalTotal.toLocaleString('id-ID')}`;
+                document.getElementById('total_price_input').value = finalTotal;
+            };
 
             // ==========================================
-            // 3. RENDER KAOS & ZONA CETAK
+            // 3. LOGIKA PINDAH TAMPILAN (VIEW SWITCHER)
             // ==========================================
+            window.switchTshirtView = function(view) {
+                if (currentView === view) return;
+
+                // Simpan desain dari sisi lama ke memori sebelum pindah
+                designStates[currentView] = canvas.getObjects()
+                    .filter(obj => obj.id === 'user-design')
+                    .map(obj => obj.toObject(['id', 'selectable', 'hasControls']));
+
+                currentView = view;
+                updateCanvasForView(currentColor, currentView);
+
+                // Update tampilan tombol agar kelihatan aktif
+                document.querySelectorAll('.btn-group .btn').forEach(b => b.classList.remove('active'));
+                const activeBtn = document.querySelector(`[onclick="switchTshirtView('${view}')"]`) || document
+                    .querySelector(`[data-view="${view}"]`);
+                if (activeBtn) activeBtn.classList.add('active');
+            };
+
             function updateCanvasForView(color, view) {
                 canvas.clear();
                 const imageUrl = `{{ asset('kaos') }}/kaos-${color}-${view}.png`;
@@ -287,51 +333,46 @@
                 fabric.Image.fromURL(imageUrl, function(img) {
                     img.set({
                         id: 'bg-kaos',
-                        left: canvas.width / 2,
-                        top: canvas.height / 2,
+                        left: 225,
+                        top: 325,
                         originX: 'center',
                         originY: 'center',
                         selectable: false,
                         evented: false
                     });
+                    img.scaleToHeight(630);
+                    canvas.add(img);
 
-                    // Kaos diset proporsional tinggi agar tampak ramping/pas di dada
-                    img.scaleToHeight(canvas.height * 0.95);
-                    baseTshirtImage = img;
-                    canvas.add(baseTshirtImage);
-                    canvas.sendToBack(baseTshirtImage);
-
-                    // ZONA CETAK A3 (Referensi Lebar Area Dada)
-                    const areaWidth = img.getScaledWidth() * 0.45; // 45% dari lebar kaos
-                    const areaHeight = img.getScaledHeight() * 0.55; // 55% dari tinggi kaos
-
+                    // Kotak Pembatas (A3 Maksimal)
                     printAreaBox = new fabric.Rect({
                         id: 'zona-cetak',
-                        left: canvas.width / 2,
-                        top: (canvas.height / 2) - 20, // Agak naik ke dada
-                        width: areaWidth,
-                        height: areaHeight,
+                        left: 225,
+                        top: 125,
+                        width: 237,
+                        height: 336, // 29.7cm x 42cm (Skala 1:8)
                         fill: 'transparent',
-                        stroke: 'rgba(0,0,0,0.3)', // Garis panduan tipis
+                        stroke: 'rgba(0,0,0,0.2)',
                         strokeWidth: 2,
                         strokeDashArray: [5, 5],
                         originX: 'center',
-                        originY: 'center',
+                        originY: 'top',
                         selectable: false,
                         evented: false
                     });
                     canvas.add(printAreaBox);
+                    canvas.sendToBack(img);
 
-                    // Load memori desain
-                    if (designStates[view] && designStates[view].length > 0) {
-                        fabric.util.enlivenObjects(designStates[view], function(objects) {
-                            objects.forEach(o => canvas.add(o));
+                    // Kembalikan desain yang sudah dibuat di sisi ini (jika ada)
+                    if (designStates[view].length > 0) {
+                        fabric.util.enlivenObjects(designStates[view], (objs) => {
+                            objs.forEach(o => {
+                                o.id = 'user-design';
+                                canvas.add(o);
+                            });
                             canvas.renderAll();
-                            isSwitchingView = false;
                             calculatePrice();
                         });
                     } else {
-                        isSwitchingView = false;
                         calculatePrice();
                     }
                 }, {
@@ -339,77 +380,39 @@
                 });
             }
 
-            function switchTshirtView(newView) {
-                if (currentView === newView) return;
-                isSwitchingView = true;
-
-                designStates[currentView] = canvas.getObjects()
-                    .filter(obj => obj.id !== 'bg-kaos' && obj.id !== 'zona-cetak')
-                    .map(obj => obj.toObject(['selectable', 'evented', 'hasControls', 'hasBorders', 'id']));
-
-                currentView = newView;
-                updateCanvasForView(currentColor, currentView);
-
-                document.querySelectorAll('.btn-group .btn').forEach(btn => btn.classList.remove('active'));
-                document.querySelector(`#view-${newView}`).classList.add('active');
-            }
-
             // ==========================================
-            // 4. INISIALISASI KANVAS
+            // 4. INIT & UPLOAD
             // ==========================================
             function initCanvas() {
                 canvas = new fabric.Canvas('tshirt-canvas', {
                     width: 450,
-                    height: 600,
+                    height: 650,
                     backgroundColor: '#f8f9fa'
                 });
-
-                // Pastikan kanvas di tengah secara CSS
-                const container = document.querySelector('.canvas-container');
-                if (container) container.style.margin = '0 auto';
-
                 updateCanvasForView(currentColor, currentView);
 
                 canvas.on('object:modified', calculatePrice);
-                canvas.on('object:added', calculatePrice);
                 canvas.on('object:removed', calculatePrice);
 
-                // [GEMBOK SKALA] Mencegah desain lebih besar dari Kotak Zona Cetak (A3)
+                // Batasi scaling agar tidak melebihi A3
                 canvas.on('object:scaling', function(e) {
-                    let obj = e.target;
-                    if (!printAreaBox) return;
-
-                    if (obj.width * obj.scaleX > printAreaBox.width) {
-                        obj.scaleX = printAreaBox.width / obj.width;
-                        obj.scaleY = obj.scaleX;
-                    }
-                    if (obj.height * obj.scaleY > printAreaBox.height) {
-                        obj.scaleY = printAreaBox.height / obj.height;
-                        obj.scaleX = obj.scaleY;
-                    }
+                    const obj = e.target;
+                    if (obj.getScaledWidth() > printAreaBox.width) obj.scaleToWidth(printAreaBox.width);
+                    if (obj.getScaledHeight() > printAreaBox.height) obj.scaleToHeight(printAreaBox.height);
                 });
             }
 
-            // ==========================================
-            // 5. INPUT DESAIN (IMAGE UPLOAD)
-            // ==========================================
             document.getElementById('design-file').addEventListener('change', function(e) {
                 Array.from(e.target.files).forEach(file => {
                     const reader = new FileReader();
                     reader.onload = function(f) {
                         fabric.Image.fromURL(f.target.result, function(img) {
-
-                            // Set ukuran awal desain proporsional dengan Zona Cetak
-                            let startWidth = printAreaBox.width *
-                            0.4; // Default A5 size
-                            img.scaleToWidth(startWidth);
-
+                            img.scaleToWidth(120); // Ukuran awal A5
                             img.set({
-                                left: canvas.width / 2,
-                                top: printAreaBox
-                                .top, // Posisi awal di dada atas
+                                left: 225,
+                                top: 150,
                                 originX: 'center',
-                                originY: 'center',
+                                originY: 'top',
                                 id: 'user-design'
                             });
                             canvas.add(img);
@@ -422,17 +425,18 @@
             });
 
             // ==========================================
-            // 6. PROSES RENDERING & SUBMIT HD
+            // 5. SUBMIT (RENDER SEMUA SISI)
             // ==========================================
             document.getElementById('order-form').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 const btn = document.getElementById('submit-button');
                 btn.disabled = true;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Mempersiapkan File HD...';
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Menyimpan Semua Desain...';
 
+                // Simpan state sisi aktif terakhir kali
                 designStates[currentView] = canvas.getObjects()
-                    .filter(obj => obj.id !== 'bg-kaos' && obj.id !== 'zona-cetak')
-                    .map(obj => obj.toObject());
+                    .filter(obj => obj.id === 'user-design')
+                    .map(obj => obj.toObject(['id']));
 
                 const views = ['depan', 'belakang', 'samping'];
                 for (const view of views) {
@@ -440,37 +444,32 @@
                         canvas.clear();
                         const shirtUrl =
                         `{{ asset('kaos') }}/kaos-${currentColor}-${view}.png`;
-
                         fabric.Image.fromURL(shirtUrl, function(img) {
                             img.set({
-                                id: 'bg-kaos',
-                                left: canvas.width / 2,
-                                top: canvas.height / 2,
+                                left: 225,
+                                top: 325,
                                 originX: 'center',
                                 originY: 'center',
                                 selectable: false
                             });
-                            img.scaleToHeight(canvas.height * 0.95);
+                            img.scaleToHeight(630);
                             canvas.add(img);
 
                             const doRender = () => {
                                 setTimeout(() => {
-                                    // 1. Render Mockup (Hapus Garis Putus-putus)
+                                    // 1. Mockup
                                     canvas.getObjects().forEach(o => {
                                         if (o.id === 'zona-cetak') o
                                             .visible = false;
                                     });
-                                    canvas.renderAll();
                                     document.getElementById(
                                             `design_data_url_${view}`)
                                         .value = canvas.toDataURL({
                                             multiplier: 2
                                         });
-
-                                    // 2. Render Bahan Mentah HD Transparan
+                                    // 2. Raw HD
                                     canvas.getObjects().forEach(o => {
-                                        if (o.id === 'bg-kaos' || o
-                                            .id === 'zona-cetak') o
+                                        if (o.id === 'bg-kaos') o
                                             .visible = false;
                                     });
                                     canvas.backgroundColor =
@@ -504,24 +503,30 @@
 
             initCanvas();
 
+            // Tombol warna
+            document.querySelectorAll('#color-options .btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('#color-options .btn').forEach(b => b.classList
+                        .remove('active', 'border-primary'));
+                    this.classList.add('active', 'border-primary');
+                    currentColor = this.dataset.color;
+                    document.getElementById('selected_color_input').value = currentColor;
+                    updateCanvasForView(currentColor, currentView);
+                });
+            });
+
+            // Quantity Helpers
             window.incrementQuantity = () => {
                 let q = document.getElementById('quantity');
-                if (parseInt(q.value) < maxStock) {
-                    q.value++;
-                    calculatePrice();
-                }
+                q.value++;
+                calculatePrice();
             };
             window.decrementQuantity = () => {
                 let q = document.getElementById('quantity');
-                if (parseInt(q.value) > 1) {
-                    q.value--;
-                    calculatePrice();
-                }
+                if (q.value > 1) q.value--;
+                calculatePrice();
             };
-
-            document.querySelectorAll('.btn-group .btn').forEach(b => b.addEventListener('click', function() {
-                switchTshirtView(this.dataset.view);
-            }));
+            document.getElementById('size').addEventListener('change', calculatePrice);
         });
     </script>
 @endsection
