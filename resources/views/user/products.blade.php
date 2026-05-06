@@ -44,18 +44,30 @@
                                 {{ Str::limit($product->description, 100) }}
                             </p>
 
-                            <div class="d-flex justify-content-between align-items-center mb-3">
+<div class="d-flex justify-content-between align-items-center mb-3">
                                 <div>
                                     <strong class="text-success">Rp
                                         {{ number_format($product->price, 0, ',', '.') }}</strong>
                                 </div>
+                                <div>
+                                    @if ($product->stock > 0)
+                                        <span class="badge bg-info text-dark"><i class="fas fa-box me-1"></i> Stok: {{ $product->stock }}</span>
+                                    @else
+                                        <span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i> Habis</span>
+                                    @endif
+                                </div>
                             </div>
 
                             <div class="d-grid">
-                                {{-- Mengarahkan ke halaman desain dan pemesanan yang baru --}}
-                                <a href="{{ route('user.orders.create', $product) }}" class="btn btn-primary">
-                                    <i class="fas fa-magic me-2"></i>Desain & Pesan
-                                </a>
+                                @if ($product->stock > 0)
+                                    <a href="{{ route('user.orders.create', $product) }}" class="btn btn-primary">
+                                        <i class="fas fa-magic me-2"></i>Desain & Pesan
+                                    </a>
+                                @else
+                                    <button class="btn btn-secondary" disabled>
+                                        <i class="fas fa-ban me-2"></i>Stok Habis
+                                    </button>
+                                @endif
                             </div>
                         </div>
                     </div>
