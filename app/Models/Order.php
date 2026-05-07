@@ -13,25 +13,19 @@ class Order extends Model
     protected $fillable = [
         'user_id',
         'product_id',
-        'custom_product_id',
         'quantity',
         'size',
         'color',
-        'design_description',
         'status',
         'total_price',
         'notes',
         'design_file_depan',
         'design_file_belakang',
         'design_file_samping',
-        'design_file',
-        'design_size',
-        'design_cost',
     ];
 
     protected $casts = [
         'total_price' => 'decimal:2',
-        'design_cost' => 'decimal:2',
     ];
 
     public function user()
@@ -42,11 +36,6 @@ class Order extends Model
     public function product()
     {
         return $this->belongsTo(CustomProduct::class, 'product_id');
-    }
-
-    public function orderItems()
-    {
-        return $this->hasMany(OrderItem::class);
     }
 
     public static function getStatusOptions()
