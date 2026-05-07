@@ -82,11 +82,17 @@ class OrderController extends Controller
       $product->decrement('stock', $request->quantity);
       DB::commit();
 
-      return redirect()->route('user.orders.show', $order->id)->with('success', 'Pesanan berhasil!');
+      return redirect()->route('user.orders.show', $order->id)->with('success', 'Pesanan berhasil dibuat! Silahkan konfirmasi ke Admin.');
     } catch (\Exception $e) {
       DB::rollBack();
       return back()->with('error', $e->getMessage());
     }
+  }
+
+  public function show($id)
+  {
+    $order = Order::with('product')->findOrFail($id);
+    return view('user.orders.show', compact('order'));
   }
 
   // Helper saveDesignImage diperbaiki agar lebih stabil
