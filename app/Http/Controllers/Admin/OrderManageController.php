@@ -16,13 +16,13 @@ class OrderManageController extends Controller
 
     public function show($id)
     {
-        $order = Order::with(['user', 'orderItems.product'])->findOrFail($id);
+        $order = Order::with(['user', 'product'])->findOrFail($id);
         return view('admin.orders.show', compact('order'));
     }
 
     public function edit($id)
     {
-        $order = Order::with(['user', 'orderItems.product'])->findOrFail($id);
+        $order = Order::with(['user', 'product'])->findOrFail($id);
         return view('admin.orders.edit', compact('order'));
     }
 
@@ -44,7 +44,7 @@ class OrderManageController extends Controller
 
     public function delete($id)
     {
-        $order = Order::with(['user', 'orderItems.product'])->findOrFail($id);
+        $order = Order::with(['user', 'product'])->findOrFail($id);
         return view('admin.orders.delete', compact('order'));
     }
 

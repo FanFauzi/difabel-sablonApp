@@ -19,7 +19,7 @@ return new class extends Migration
         $table->string('size');
         $table->string('color');
         $table->decimal('total_price', 15, 2);
-        $table->enum('status', ['pending', 'processing', 'completed', 'cancelled'])->default('pending');
+        $table->enum('status', ['pending', 'proses', 'selesai', 'ditolak'])->default('pending');
         $table->text('notes')->nullable(); // Untuk link bahan HD & deskripsi
         $table->string('design_file_depan')->nullable();
         $table->string('design_file_belakang')->nullable();

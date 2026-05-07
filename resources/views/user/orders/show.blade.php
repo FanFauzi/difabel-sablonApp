@@ -110,7 +110,7 @@
                     </div>
                     <div class="d-grid gap-2">
                         @php
-                            $adminWA = env('WA_ADMIN'); // GANTI DENGAN NOMOR WA ADMIN KAMU (Gunakan kode negara 62)
+                            $adminWA = config('app.admin_whatsapp'); 
                             $message = "Halo Admin Sablon Difabel, saya ingin konfirmasi pesanan saya.\n\n" .
                                        "*Nomor Pesanan:* #" . $order->order_number . "\n" .
                                        "*Nama:* " . Auth::user()->name . "\n" .

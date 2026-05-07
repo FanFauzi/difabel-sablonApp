@@ -5,7 +5,6 @@ namespace App\Http\Controllers\admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Order;
-use App\Models\OrderItem;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Maatwebsite\Excel\Facades\Excel;
@@ -60,9 +59,8 @@ class FinancialReportController extends Controller
             ->get();
 
         // Top selling products
-        $topProducts = OrderItem::join('products', 'order_items.product_id', '=', 'products.id')
-            ->join('orders', 'order_items.order_id', '=', 'orders.id')
-            ->selectRaw('products.name, SUM(order_items.quantity) as total_sold, SUM(order_items.subtotal) as total_revenue')
+        $topProducts = Order::join('products', 'orders.product_id', '=', 'products.id')
+            ->selectRaw('products.name, SUM(orders.quantity) as total_sold, SUM(orders.total_price) as total_revenue')
             ->where('orders.status', 'selesai')
             ->groupBy('products.id', 'products.name')
             ->orderBy('total_sold', 'desc')

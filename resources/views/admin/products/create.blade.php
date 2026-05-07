@@ -16,66 +16,60 @@
                         </h5>
                     </div>
                     <div class="card-body p-4">
+                        @if ($errors->any())
+                            <div class="alert alert-danger">
+                                <ul>
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
                         <form action="{{ route('admin.products.store') }}" method="POST" enctype="multipart/form-data"
                             id="productForm">
                             @csrf
 
-                            <div class="mb-4">
-                                <h6 class="text-primary mb-3">
-                                    <i class="fas fa-info-circle me-2"></i>Informasi Dasar
-                                </h6>
-                                <div class="row">
-                                    <div class="col-md-8 mb-3">
-                                        <label for="name" class="form-label fw-bold">
-                                            <i class="fas fa-tag text-primary me-1"></i>Nama Produk
-                                        </label>
-                                        <input type="text"
-                                            class="form-control form-control-lg @error('name') is-invalid @enderror"
-                                            id="name" name="name" value="{{ old('name') }}"
-                                            placeholder="Contoh: Kaos Custom Polos" required>
-                                        <div class="form-text">Nama produk yang akan ditampilkan</div>
-                                        @error('name')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </div>
+<div class="mb-4">
+    <h6 class="text-primary mb-3">
+        <i class="fas fa-info-circle me-2"></i>Informasi Dasar
+    </h6>
+    <div class="row">
+        {{-- Nama Produk --}}
+        <div class="col-md-8 mb-3">
+            <label for="name" class="form-label fw-bold">Nama Produk</label>
+            <input type="text" class="form-control form-control-lg @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" placeholder="Contoh: Kaos Custom Polos" required>
+        </div>
 
-                                    <div class="col-md-4 mb-3">
-                                        <label for="category" class="form-label fw-bold">
-                                            <i class="fas fa-folder text-primary me-1"></i>Kategori
-                                        </label>
-                                        <select class="form-select form-select-lg @error('category') is-invalid @enderror"
-                                            id="category" name="category" required>
-                                            <option value="">Pilih Kategori</option>
-                                            <option value="kaos" {{ old('category') === 'kaos' ? 'selected' : '' }}>Kaos
-                                            </option>
-                                            <option value="kemeja" {{ old('category') === 'kemeja' ? 'selected' : '' }}>
-                                                Kemeja</option>
-                                            <option value="jaket" {{ old('category') === 'jaket' ? 'selected' : '' }}>Jaket
-                                            </option>
-                                            <option value="topi" {{ old('category') === 'topi' ? 'selected' : '' }}>Topi
-                                            </option>
-                                            <option value="tas" {{ old('category') === 'tas' ? 'selected' : '' }}>Tas
-                                            </option>
-                                        </select>
-                                        <div class="form-text">Kategori produk sablon</div>
-                                        @error('category')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                </div>
+        {{-- Kategori --}}
+        <div class="col-md-4 mb-3">
+            <label for="category" class="form-label fw-bold">Kategori</label>
+            <select class="form-select form-select-lg @error('category') is-invalid @enderror" id="category" name="category" required>
+                <option value="">Pilih Kategori</option>
+                <option value="kaos" {{ old('category') === 'kaos' ? 'selected' : '' }}>Kaos</option>
+                <option value="kemeja" {{ old('category') === 'kemeja' ? 'selected' : '' }}>Kemeja</option>
+            </select>
+        </div>
+    </div>
 
-                                <div class="mb-3">
-                                    <label for="description" class="form-label fw-bold">
-                                        <i class="fas fa-align-left text-primary me-1"></i>Deskripsi Produk
-                                    </label>
-                                    <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description"
-                                        rows="3" placeholder="Jelaskan detail produk, bahan, ukuran, dll.">{{ old('description') }}</textarea>
-                                    <div class="form-text">Deskripsi detail produk (opsional)</div>
-                                    @error('description')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
+    <div class="row">
+        {{-- Input Harga Dasar (PENTING) --}}
+        <div class="col-md-6 mb-3">
+            <label for="price_display" class="form-label fw-bold">Harga Dasar Produk</label>
+            <div class="input-group">
+                <span class="input-group-text">Rp</span>
+                <input type="text" class="form-control form-control-lg" id="price_display" placeholder="50.000" required>
+                {{-- Input tersembunyi untuk menyimpan angka murni (tanpa titik) --}}
+                <input type="hidden" name="price" id="price" value="{{ old('price') }}">
+            </div>
+        </div>
+
+        {{-- Input Stok (PENTING) --}}
+        <div class="col-md-6 mb-3">
+            <label for="stock" class="form-label fw-bold">Stok Awal</label>
+            <input type="number" class="form-control form-control-lg @error('stock') is-invalid @enderror" id="stock" name="stock" value="{{ old('stock', 0) }}" min="0" required>
+        </div>
+    </div>
+</div>
 
                             <div class="card mb-4 shadow-sm">
                                 <div class="card-header bg-light">

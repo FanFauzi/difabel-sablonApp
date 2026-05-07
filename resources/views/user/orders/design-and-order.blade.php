@@ -70,7 +70,6 @@
                                         <button type="button" class="btn btn-outline-secondary"
                                             onclick="incrementQuantity()">+</button>
                                     </div>
-                                    {{-- <div class="form-text">Stok tersedia: {{ $product->stock }}</div> --}}
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="size" class="form-label">Ukuran <span
@@ -111,21 +110,22 @@
                                 </div>
 
                                 <div class="col-12">
-                                    <label class="form-label">Catatan Desain (Opsional)</label>
-                                    <textarea class="form-control" name="design_notes" rows="2"
-                                        placeholder="Posisi, ukuran, atau instruksi khusus..."></textarea>
+                                    <label for="design_notes" class="form-label fw-bold">Catatan Desain</label>
+                                    <textarea class="form-control" id="design_notes" name="design_notes" rows="3"
+                                        placeholder="Contoh: Tolong sablon agak ke atas">{{ old('design_notes') }}</textarea>
                                 </div>
                             </div>
                         </div>
 
                         <div id="active-design-list" class="mb-4">
-    <label class="form-label fw-bold text-primary"><i class="fas fa-list me-2"></i>Daftar Ukuran Desain (Semua Sisi)</label>
-    <div id="design-items-container" class="p-2 border rounded bg-light">
-        <div class="text-muted small text-center py-2" id="empty-design-msg">
-            Belum ada desain yang ditambahkan
-        </div>
-    </div>
-</div>
+                            <label class="form-label fw-bold text-primary"><i class="fas fa-list me-2"></i>Daftar Ukuran
+                                Desain (Semua Sisi)</label>
+                            <div id="design-items-container" class="p-2 border rounded bg-light">
+                                <div class="text-muted small text-center py-2" id="empty-design-msg">
+                                    Belum ada desain yang ditambahkan
+                                </div>
+                            </div>
+                        </div>
 
                         <div class="mb-4">
                             <h6 class="text-primary mb-3"><i class="fas fa-file-invoice-dollar me-2"></i>3. Ringkasan &
@@ -216,7 +216,7 @@
         </div>
     </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
 
@@ -225,11 +225,17 @@
             // ==========================================
             const productPrice = {{ $product->price ?? 0 }};
             const maxStock = {{ $product->stock ?? 0 }};
-            const sizePrices = { 'S': 0, 'M': 0, 'L': 0, 'XL': 10000, 'XXL': 15000 };
+            const sizePrices = {
+                'S': 0,
+                'M': 0,
+                'L': 0,
+                'XL': 10000,
+                'XXL': 15000
+            };
             const designCosts = {
-                'small': {{ $product->small_design_cost ?? 0 }},  // A5
+                'small': {{ $product->small_design_cost ?? 0 }}, // A5
                 'medium': {{ $product->medium_design_cost ?? 0 }}, // A4
-                'large': {{ $product->large_design_cost ?? 0 }}   // A3
+                'large': {{ $product->large_design_cost ?? 0 }} // A3
             };
 
             let canvas, baseTshirtImage;
@@ -334,7 +340,13 @@
 
                 fabric.Image.fromURL(imageUrl, function(img) {
                     img.set({
-                        id: 'bg-kaos', left: 225, top: 325, originX: 'center', originY: 'center', selectable: false, evented: false
+                        id: 'bg-kaos',
+                        left: 225,
+                        top: 325,
+                        originX: 'center',
+                        originY: 'center',
+                        selectable: false,
+                        evented: false
                     });
                     img.scaleToHeight(630);
                     canvas.add(img);
@@ -348,7 +360,9 @@
                     });
 
                     canvas.renderAll();
-                }, { crossOrigin: 'anonymous' });
+                }, {
+                    crossOrigin: 'anonymous'
+                });
             }
 
             // ==========================================
@@ -356,10 +370,12 @@
             // ==========================================
             function initCanvas() {
                 canvas = new fabric.Canvas('tshirt-canvas', {
-                    width: 450, height: 650, backgroundColor: '#f8f9fa'
+                    width: 450,
+                    height: 650,
+                    backgroundColor: '#f8f9fa'
                 });
                 updateCanvasForView(currentColor, currentView);
-                
+
                 // BUG SEBELUMNYA TELAH DIHAPUS DARI SINI: (canvas.on('object:removed'))
                 // Sekarang menggunakan event keyboard delete manual yang jauh lebih aman!
             }
@@ -384,11 +400,19 @@
                             const uniqueId = 'dsgn_' + Date.now() + Math.random();
                             img.scaleToWidth(150);
                             img.set({
-                                left: 225, top: 200, originX: 'center', originY: 'center', hasControls: true, selectable: true
+                                left: 225,
+                                top: 200,
+                                originX: 'center',
+                                originY: 'center',
+                                hasControls: true,
+                                selectable: true
                             });
 
                             uploadedDesigns.push({
-                                id: uniqueId, view: currentView, fabricObj: img, size: 'small'
+                                id: uniqueId,
+                                view: currentView,
+                                fabricObj: img,
+                                size: 'small'
                             });
 
                             canvas.add(img);
@@ -411,7 +435,7 @@
                 btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Mempersiapkan File HD...';
 
                 // HARGA DIKUNCI DI SINI SEBELUM PROSES RENDER (ANTI-RESET)
-                calculatePrice(); 
+                calculatePrice();
 
                 const views = ['depan', 'belakang', 'samping'];
                 for (const v of views) {
@@ -420,7 +444,11 @@
                         const shirtUrl = `{{ asset('kaos') }}/kaos-${currentColor}-${v}.png`;
                         fabric.Image.fromURL(shirtUrl, function(img) {
                             img.set({
-                                left: 225, top: 325, originX: 'center', originY: 'center', selectable: false
+                                left: 225,
+                                top: 325,
+                                originX: 'center',
+                                originY: 'center',
+                                selectable: false
                             });
                             img.scaleToHeight(630);
                             canvas.add(img);
@@ -431,23 +459,34 @@
 
                             const doRender = () => {
                                 setTimeout(() => {
-                                    document.getElementById(`design_data_url_${v}`).value = canvas.toDataURL({ multiplier: 2 });
+                                    document.getElementById(
+                                            `design_data_url_${v}`).value =
+                                        canvas.toDataURL({
+                                            multiplier: 2
+                                        });
                                     img.visible = false;
-                                    canvas.backgroundColor = 'rgba(0,0,0,0)';
+                                    canvas.backgroundColor =
+                                    'rgba(0,0,0,0)';
                                     canvas.renderAll();
-                                    document.getElementById(`raw_design_data_url_${v}`).value = canvas.toDataURL({ multiplier: 5 });
+                                    document.getElementById(
+                                            `raw_design_data_url_${v}`)
+                                        .value = canvas.toDataURL({
+                                            multiplier: 5
+                                        });
                                     resolve();
                                 }, 300);
                             };
                             doRender();
-                        }, { crossOrigin: 'anonymous' });
+                        }, {
+                            crossOrigin: 'anonymous'
+                        });
                     });
                 }
                 this.submit();
             });
 
             initCanvas();
-            
+
             // Panggil hitung harga pertama kali (Saat halaman dimuat)
             calculatePrice();
 
@@ -462,7 +501,8 @@
             // Event Listener Warna Kaos
             document.querySelectorAll('#color-options .btn').forEach(btn => {
                 btn.addEventListener('click', function() {
-                    document.querySelectorAll('#color-options .btn').forEach(b => b.classList.remove('active', 'border-primary'));
+                    document.querySelectorAll('#color-options .btn').forEach(b => b.classList
+                        .remove('active', 'border-primary'));
                     this.classList.add('active', 'border-primary');
                     currentColor = this.dataset.color;
                     document.getElementById('selected_color_input').value = currentColor;
@@ -471,8 +511,16 @@
             });
 
             // Event Listener Jumlah & Size Kaos
-            window.incrementQuantity = () => { let q = document.getElementById('quantity'); q.value++; calculatePrice(); };
-            window.decrementQuantity = () => { let q = document.getElementById('quantity'); if (q.value > 1) q.value--; calculatePrice(); };
+            window.incrementQuantity = () => {
+                let q = document.getElementById('quantity');
+                q.value++;
+                calculatePrice();
+            };
+            window.decrementQuantity = () => {
+                let q = document.getElementById('quantity');
+                if (q.value > 1) q.value--;
+                calculatePrice();
+            };
             document.getElementById('size').addEventListener('change', calculatePrice);
         });
     </script>

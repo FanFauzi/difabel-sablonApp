@@ -35,18 +35,10 @@
                         <div class="col-md-8">{{ $order->size ?? 'N/A' }} / {{ ucfirst($order->color ?? 'N/A') }}</div>
                     </div>
                     <hr>
-                    <div class="row mb-3">
+                    {{-- <div class="row mb-3">
                         <div class="col-md-4"><strong>Harga per Unit:</strong></div>
                         <div class="col-md-8">Rp {{ number_format($order->product->price ?? 0, 0, ',', '.') }}</div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-4"><strong>Total Harga Produk:</strong></div>
-                        <div class="col-md-8">Rp {{ number_format(($order->product->price ?? 0) * $order->quantity, 0, ',', '.') }}</div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-4"><strong>Biaya Desain:</strong></div>
-                        <div class="col-md-8">Rp {{ number_format($order->design_cost ?? 0, 0, ',', '.') }}</div>
-                    </div>
+                    </div> --}}
                     <div class="row">
                         <div class="col-md-4"><strong>Total Pembayaran:</strong></div>
                         <div class="col-md-8">

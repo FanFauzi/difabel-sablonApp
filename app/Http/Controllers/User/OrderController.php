@@ -65,8 +65,11 @@ class OrderController extends Controller
       // Tambahkan Link ke Notes agar Admin gampang download
       $adminNotes = $request->design_notes . "\n\n--- DOWNLOAD BAHAN CETAK HD ---\n" . implode("\n", $rawLinks);
 
+      $orderNumber = 'ORD-' . strtoupper(uniqid());
+
       $order = Order::create([
         'user_id' => Auth::id(),
+        'order_number' => $orderNumber,
         'product_id' => $request->product_id,
         'quantity' => $request->quantity,
         'size' => $request->size,
